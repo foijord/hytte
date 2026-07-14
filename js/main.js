@@ -380,15 +380,24 @@ function serialize() {
 async function save() {
   const btn = document.getElementById('save');
   try {
-    const res = await fetch('/api/save', { method: 'POST', body: JSON.stringify(serialize()) });
+    const res = await fetch('api/save', { method: 'POST', body: JSON.stringify(serialize()) });
     if (!res.ok) throw new Error((await res.json()).error ?? res.status);
     dirty = false;
     buildingsSource = 'edited';
     btn.textContent = 'saved ✓';
     setTimeout(() => { btn.textContent = dirty ? 'save*' : 'save'; }, 1500);
   } catch (err) {
-    btn.textContent = 'save failed!';
-    console.error('save failed', err);
+    // no save server (e.g. static hosting) — download the JSON instead
+    console.warn('save API unavailable, downloading instead', err);
+    const blob = new Blob([JSON.stringify(serialize(), null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'buildings_edited.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    dirty = false;
+    btn.textContent = 'downloaded ↓';
+    setTimeout(() => { btn.textContent = dirty ? 'save*' : 'save'; }, 2500);
   }
 }
 
@@ -434,7 +443,7 @@ document.getElementById('save').addEventListener('click', save);
 
 document.getElementById('reset').addEventListener('click', async () => {
   if (!confirm('Discard all edits and reload the generated buildings?')) return;
-  await fetch('/api/save', { method: 'DELETE' });
+  try { await fetch('api/save', { method: 'DELETE' }); } catch { /* static hosting */ }
   location.reload();
 });
 

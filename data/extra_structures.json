@@ -1,0 +1,15 @@
+[
+ {
+  "id": "deck",
+  "type": "deck",
+  "cE": 71423.58,
+  "cN": 6458106.21,
+  "w": 8.0,
+  "d": 3.0,
+  "angleDeg": 20.6,
+  "base": 2.11,
+  "height": 1.38,
+  "onParcel": true,
+  "footprint": []
+ }
+]

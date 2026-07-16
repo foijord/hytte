@@ -1206,7 +1206,7 @@
   "ridgeAxis": "w",
   "pitchDeg": 13.7,
   "open": true,
-  "backWall": "ridge-",
+  "backWall": "ridge+",
   "onParcel": true,
   "footprint": [
    [

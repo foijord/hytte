@@ -41,9 +41,9 @@ MANUAL_PART = {
                     "ridgeAbs": 7.16, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 17.8},
     # eave matches the main wing eave (6.29) so the roofs meet at the shared
     # line; that pitch (13.7°) also reproduces the LiDAR 6.30 at the outer
-    # edge. Back wall at the road-facing (SW, flush) gable end.
+    # edge. Back wall toward the road: the NE gable end (ridge+).
     "936839960:2": {"cE": 71422.40, "cN": 6458100.41, "w": 5.81, "d": 5.4, "open": True,
-                    "backWall": "ridge-",
+                    "backWall": "ridge+",
                     "ridgeAbs": 6.95, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 13.7},
 }
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)

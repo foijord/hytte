@@ -28,13 +28,16 @@ MAX_PARTS = 6
 dtm = tifffile.imread(os.path.join(ROOT, "data", "dtm_25cm.tif"))
 dom = tifffile.imread(os.path.join(ROOT, "data", "dom_25cm.tif"))
 
-# Roof overrides for parts where the automatic fit fails. Heights are
-# ABSOLUTE (NN2000) and converted to base-relative when applied.
-# 936839960:2 sits where two roof planes of the Z-shaped cabin meet; the
-# DOM profile shows a cross-gable at the main wing's 17.8° pitch:
-# constant along the 5.5 m axis, falling 6.95 -> 6.30 across it.
-MANUAL_ROOF_ABS = {
-    "936839960:2": {"ridgeAbs": 6.95, "eaveAbs": 6.31, "ridgeAxis": "w", "pitchDeg": 17.8},
+# Part overrides where the automatic decomposition/fit doesn't match the
+# real construction. May replace the rect (cE/cN/w/d) and/or the roof;
+# heights are ABSOLUTE (NN2000), converted to base-relative when applied.
+# 936839960:2: the wing roof is connected to the main wing roof and spans
+# the full main-wing width (6.8 m) from the wing's outer edge inward, ridge
+# parallel to and 0.2 m below the main ridge, same 17.8° pitch (per owner
+# and the DOM profile: surface peaks 6.95 m ~1.2 m in from the shared edge).
+MANUAL_PART = {
+    "936839960:2": {"cE": 71423.11, "cN": 6458100.51, "d": 6.8,
+                    "ridgeAbs": 6.95, "eaveAbs": 5.86, "ridgeAxis": "w", "pitchDeg": 17.8},
 }
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)
 
@@ -296,12 +299,16 @@ def main():
                 continue
             base, height = st
             part_id = f"{el['id']}:{k+1}" if len(rects) > 1 else el["id"]
-            roof = fit_roof(rc, rw, rd, ra, base)
-            if part_id in MANUAL_ROOF_ABS:
-                o = MANUAL_ROOF_ABS[part_id]
+            if part_id in MANUAL_PART:
+                o = MANUAL_PART[part_id]
+                rc = np.array([o.get("cE", rc[0]), o.get("cN", rc[1])])
+                rw = o.get("w", rw)
+                rd = o.get("d", rd)
                 roof = {"flat": False, "eave": round(o["eaveAbs"] - base, 2),
                         "ridge": round(o["ridgeAbs"] - base, 2),
                         "ridgeAxis": o["ridgeAxis"], "pitchDeg": o["pitchDeg"]}
+            else:
+                roof = fit_roof(rc, rw, rd, ra, base)
             out.append({
                 "id": part_id,
                 "type": tags.get("building", "yes"),

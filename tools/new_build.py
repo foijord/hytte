@@ -83,11 +83,13 @@ def main():
     out = [rec('newbuild:cabin', cE, cN, round(roof_l, 2), round(roof_w, 2),
                base, eave, ridge, PITCH)]
 
-    # one combined storage + technical room under the deck (deck top unchanged)
+    # one combined storage + technical room under the deck (deck top unchanged);
+    # keeps the deck's own angle, which is 90 deg off the cabin's
     out.append(rec('newbuild:storage', deck['cE'], deck['cN'],
                    deck['w'], deck['d'], deck['base'],
                    deck['ridge'], deck['ridge'], 0.0,
-                   type='deck', flat=True, overhang=0.0))
+                   type='deck', flat=True, overhang=0.0,
+                   angleDeg=deck['angleDeg']))
 
     path = ROOT / 'web' / 'newbuild.json'
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')

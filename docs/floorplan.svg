@@ -21,14 +21,10 @@
 <rect x="363.6" y="212.0" width="14.8" height="40.0" fill="#8a5a2b" />
 <text x="406.0" y="232.0" font-size="10" fill="#6b5335" text-anchor="start" >entrance</text>
 <rect x="80.0" y="584.4" width="320.0" height="120.0" fill="#e8d9be" stroke="#b59a6a"/>
-<line x1="292.0" y1="704.4" x2="292.0" y2="584.4" stroke="#b59a6a" stroke-dasharray="5 4"/>
-<text x="186.0" y="630.4" font-size="11" fill="#6b5335" text-anchor="middle" >Deck 8 × 3 m</text>
-<text x="186.0" y="654.4" font-size="10" fill="#8a7350" text-anchor="middle" >Storage 12 m² below</text>
-<text x="346.0" y="640.4" font-size="10" fill="#8a7350" text-anchor="middle" >Tech 5.5 m²</text>
-<text x="346.0" y="660.4" font-size="10" fill="#8a7350" text-anchor="middle" >below</text>
-<rect x="168.0" y="702.0" width="36.0" height="4.8" fill="#8a5a2b" />
-<rect x="328.0" y="702.0" width="36.0" height="4.8" fill="#8a5a2b" />
-<text x="240.0" y="724.4" font-size="9" fill="#999" text-anchor="middle" >doors to storage / tech on the lower (sea) side</text>
+<text x="240.0" y="630.4" font-size="11" fill="#6b5335" text-anchor="middle" >Deck 8 × 3 m</text>
+<text x="240.0" y="654.4" font-size="10" fill="#8a7350" text-anchor="middle" >Storage / tech room ~19 m² below</text>
+<rect x="222.0" y="702.0" width="36.0" height="4.8" fill="#8a5a2b" />
+<text x="240.0" y="724.4" font-size="9" fill="#999" text-anchor="middle" >door to the room on the lower (sea) side</text>
 <text x="240.0" y="463.6" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Living room</text>
 <text x="240.0" y="485.2" font-size="10" fill="#777" text-anchor="middle" >25.2 m²</text>
 <text x="240.0" y="321.6" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Kitchen / dining</text>
@@ -69,5 +65,5 @@
 <text x="136.0" y="788.0" font-size="11" fill="#4d7ba6" text-anchor="middle" >⌄ sea / fjord</text>
 <text x="392.0" y="10.0" font-size="11" fill="#777" text-anchor="middle" >road side ⌃</text>
 <text x="14.0" y="830.0" font-size="16" font-weight="700" fill="#222">Kalsneset 27 — catalog cabin concept (ferdighytte)</text>
-<text x="14.0" y="850.0" font-size="11" fill="#666">12 × 6.8 m ≈ 82 m² + hems · 33° roof · window wall to the sea · concrete slab · storage 12 m² + tech 5.5 m² below deck · layout indicative, final plan per manufacturer · scale 1:100 @ 40px/m</text>
+<text x="14.0" y="850.0" font-size="11" fill="#666">12 × 6.8 m ≈ 82 m² + hems · 33° roof · window wall to the sea · concrete slab · combined storage/tech room ~19 m² below deck · layout indicative, final plan per manufacturer · scale 1:100 @ 40px/m</text>
 </svg>

@@ -8,8 +8,8 @@ Design intent (owner, 2026-07-17, revised to cut cost):
     on the same sea-facing gable line and orientation as the old cabin.
   - Steeper roof (33 deg) than the old cabin to give the hems headroom;
     ridge lands ~1 m above the old one - flagged for the dispensation.
-  - Deck 8 x 3 m arrangement UNCHANGED: two concrete rooms below
-    (storage 5.3 m + technical room 2.7 m, separate entrances).
+  - Deck 8 x 3 m arrangement stays; ONE combined concrete room below it
+    (storage + technical, ~18 m2, single entrance on the sea side).
 
 Derives placement from web/buildings.json records :1 and deck, so a
 MANUAL_PART regeneration automatically carries into the concept.
@@ -25,7 +25,6 @@ WALLS_W = 6.8
 PITCH = 33.0               # deg, hems-friendly roof
 WALL_H = 2.9               # m, wall height at the wall face (raised for hems)
 OVERHANG = 0.4
-STORAGE_LEN = 5.3          # m of the 8 m deck over the storage room
 WALL_EXT = 0.25            # exterior wall thickness (floor plan)
 PART = 0.15                # interior partition thickness (floor plan)
 
@@ -84,19 +83,11 @@ def main():
     out = [rec('newbuild:cabin', cE, cN, round(roof_l, 2), round(roof_w, 2),
                base, eave, ridge, PITCH)]
 
-    # deck split into the two concrete rooms below (deck top = old deck top)
-    dwu, _ = unit_vectors(deck['angleDeg'])
-    tech_len = deck['w'] - STORAGE_LEN
-    # deck w+ points toward the old wing A side of the facade: storage there,
-    # technical room at the other end.
-    for name, length, off in (('storage', STORAGE_LEN, (deck['w'] - STORAGE_LEN) / 2),
-                              ('tech', tech_len, -(deck['w'] - tech_len) / 2)):
-        out.append(rec(f'newbuild:{name}',
-                       round(deck['cE'] + off * dwu[0], 2),
-                       round(deck['cN'] + off * dwu[1], 2),
-                       round(length, 2), deck['d'], deck['base'],
-                       deck['ridge'], deck['ridge'], 0.0,
-                       type='deck', flat=True, overhang=0.0))
+    # one combined storage + technical room under the deck (deck top unchanged)
+    out.append(rec('newbuild:storage', deck['cE'], deck['cN'],
+                   deck['w'], deck['d'], deck['base'],
+                   deck['ridge'], deck['ridge'], 0.0,
+                   type='deck', flat=True, overhang=0.0))
 
     path = ROOT / 'web' / 'newbuild.json'
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')
@@ -189,20 +180,18 @@ def write_floorplan(deck):
     rect(x1 - WALL_EXT - 0.06, band0 + 0.35, x1 + 0.06, band0 + 1.35, '#8a5a2b')  # entry
     text(x1 + 0.75, band0 + 0.85, 'entrance', 10, '#6b5335', anchor='start')
 
-    # deck + concrete rooms below (unchanged arrangement)
-    dy1 = -0.21
+    # deck + the combined concrete room below, at its true footprint position
+    # relative to the cabin (deck is centered on the cabin axis, 0.61 m off
+    # the sea wall face, so it spans 0.2 m past the roof edge on both sides)
+    dy1 = 0.4 - 0.61
     dy0 = dy1 - deck['d']
-    dx0 = -0.2
-    split = dx0 + STORAGE_LEN
+    dx0 = ROOF_W / 2 - deck['w'] / 2
     rect(dx0, dy0, dx0 + deck['w'], dy1, '#e8d9be', 'stroke="#b59a6a"')
-    line(split, dy0, split, dy1, '#b59a6a', 'stroke-dasharray="5 4"')
-    text((dx0 + split) / 2, (dy0 + dy1) / 2 + 0.35, f'Deck {deck["w"]:.0f} × {deck["d"]:.0f} m', 11, '#6b5335')
-    text((dx0 + split) / 2, (dy0 + dy1) / 2 - 0.25, 'Storage 12 m² below', 10, '#8a7350')
-    text((split + dx0 + deck['w']) / 2, (dy0 + dy1) / 2 + 0.1, 'Tech 5.5 m²', 10, '#8a7350')
-    text((split + dx0 + deck['w']) / 2, (dy0 + dy1) / 2 - 0.4, 'below', 10, '#8a7350')
-    for cx in ((dx0 + split) / 2, (split + dx0 + deck['w']) / 2):   # doors below
-        rect(cx - 0.45, dy0 - 0.06, cx + 0.45, dy0 + 0.06, '#8a5a2b')
-    text(dx0 + deck['w'] / 2, dy0 - 0.5, 'doors to storage / tech on the lower (sea) side', 9, '#999')
+    dcx, dcy = dx0 + deck['w'] / 2, (dy0 + dy1) / 2
+    text(dcx, dcy + 0.35, f'Deck {deck["w"]:.0f} × {deck["d"]:.0f} m', 11, '#6b5335')
+    text(dcx, dcy - 0.25, f'Storage / tech room ~{(deck["w"] - 0.5) * (deck["d"] - 0.5):.0f} m² below', 10, '#8a7350')
+    rect(dcx - 0.45, dy0 - 0.06, dcx + 0.45, dy0 + 0.06, '#8a5a2b')   # door below
+    text(dcx, dy0 - 0.5, 'door to the room on the lower (sea) side', 9, '#999')
 
     # room labels
     for rx0, ry0, rx1, ry1, label in rooms:
@@ -247,7 +236,7 @@ def write_floorplan(deck):
     svg.append(f'<text x="{px(MX0)+14}" y="{h_px-20}" font-size="11" fill="#666">'
                f'{WALLS_L:.0f} × {WALLS_W:.1f} m ≈ {WALLS_L * WALLS_W:.0f} m² + hems · '
                f'{PITCH:.0f}° roof · window wall to the sea · concrete slab · '
-               f'storage 12 m² + tech 5.5 m² below deck · layout indicative, final plan per '
+               f'combined storage/tech room ~19 m² below deck · layout indicative, final plan per '
                f'manufacturer · scale 1:100 @ {S}px/m</text>')
     svg.append('</svg>')
 

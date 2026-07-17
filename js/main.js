@@ -47,8 +47,9 @@ let originalHeights = null;
 let excavateOn = true;
 let labelsOn = true;
 let newBuildOn = false;
-// records replaced by the new-build concept (web/newbuild.json)
-const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', '936839960:3', 'deck']);
+// records replaced by the new-build concept (web/newbuild.json);
+// the annex (936839960:3) stays in both variants
+const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', 'deck']);
 if (q.get('new') === '1') {
   newBuildOn = true;
   document.getElementById('newb').textContent = 'new build: on';

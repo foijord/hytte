@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 592.0 918.0" font-family="system-ui, sans-serif">
+<rect width="592.0" height="918.0" fill="#fbf9f4"/>
+<rect x="88.0" y="60.0" width="216.0" height="564.0" stroke="#b0a58f" stroke-dasharray="6 5" fill="none"/>
+<rect x="304.0" y="248.0" width="216.0" height="376.0" stroke="#b0a58f" stroke-dasharray="6 5" fill="none"/>
+<line x1="196.0" y1="624.0" x2="196.0" y2="60.0" stroke="#b0a58f" stroke-dasharray="10 4 2 4"/>
+<line x1="412.0" y1="624.0" x2="412.0" y2="248.0" stroke="#b0a58f" stroke-dasharray="10 4 2 4"/>
+<rect x="104.0" y="76.0" width="200.0" height="532.0" fill="#4a4238" />
+<rect x="304.0" y="264.0" width="200.0" height="248.0" fill="#4a4238" />
+<rect x="114.0" y="400.0" width="182.0" height="198.0" fill="#ffffff" />
+<rect x="114.0" y="248.0" width="182.0" height="146.0" fill="#ffffff" />
+<rect x="114.0" y="142.0" width="182.0" height="100.0" fill="#ffffff" />
+<rect x="114.0" y="86.0" width="182.0" height="50.0" fill="#ffffff" />
+<rect x="312.0" y="274.0" width="182.0" height="48.0" fill="#ffffff" />
+<rect x="312.0" y="328.0" width="40.0" height="174.0" fill="#ffffff" />
+<rect x="358.0" y="418.0" width="136.0" height="84.0" fill="#ffffff" />
+<rect x="358.0" y="328.0" width="136.0" height="84.0" fill="#ffffff" />
+<rect x="296.0" y="286.0" width="16.0" height="40.0" fill="#ffffff" />
+<rect x="296.0" y="536.0" width="16.0" height="36.0" fill="#ffffff" />
+<rect x="128.0" y="597.2" width="144.0" height="11.6" fill="#7fb2d9" />
+<rect x="228.0" y="595.6" width="40.0" height="14.8" fill="#8a5a2b" />
+<rect x="103.2" y="288.0" width="11.6" height="96.0" fill="#7fb2d9" />
+<rect x="103.2" y="160.0" width="11.6" height="64.0" fill="#7fb2d9" />
+<rect x="144.0" y="75.2" width="60.0" height="11.6" fill="#7fb2d9" />
+<rect x="493.2" y="436.0" width="11.6" height="44.0" fill="#7fb2d9" />
+<rect x="493.2" y="344.0" width="11.6" height="44.0" fill="#7fb2d9" />
+<rect x="364.0" y="263.2" width="40.0" height="11.6" fill="#8a5a2b" />
+<text x="384.0" y="250.0" font-size="10" fill="#6b5335" text-anchor="middle" >entrance</text>
+<rect x="319.0" y="603.0" width="6" height="6" fill="#4a4238"/>
+<rect x="499.0" y="603.0" width="6" height="6" fill="#4a4238"/>
+<rect x="499.0" y="517.0" width="6" height="6" fill="#4a4238"/>
+<text x="412.0" y="564.0" font-size="11" fill="#555" text-anchor="middle" >Covered terrace</text>
+<text x="412.0" y="584.0" font-size="10" fill="#777" text-anchor="middle" >13 m² · open</text>
+<rect x="126.4" y="648.4" width="320.0" height="120.0" fill="#e8d9be" stroke="#b59a6a"/>
+<line x1="338.4" y1="768.4" x2="338.4" y2="648.4" stroke="#b59a6a" stroke-dasharray="5 4"/>
+<text x="232.4" y="694.4" font-size="11" fill="#6b5335" text-anchor="middle" >Deck 8 × 3 m</text>
+<text x="232.4" y="718.4" font-size="10" fill="#8a7350" text-anchor="middle" >Storage 12 m² below</text>
+<text x="392.4" y="704.4" font-size="10" fill="#8a7350" text-anchor="middle" >Tech 5.5 m²</text>
+<text x="392.4" y="724.4" font-size="10" fill="#8a7350" text-anchor="middle" >below</text>
+<rect x="214.4" y="766.0" width="36.0" height="4.8" fill="#8a5a2b" />
+<rect x="374.4" y="766.0" width="36.0" height="4.8" fill="#8a5a2b" />
+<text x="286.4" y="788.4" font-size="9" fill="#999" text-anchor="middle" >doors to storage / tech on the lower (sea) side</text>
+<text x="205.0" y="491.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Living room</text>
+<text x="205.0" y="515.8" font-size="10" fill="#777" text-anchor="middle" >22.5 m²</text>
+<text x="205.0" y="313.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Kitchen / dining</text>
+<text x="205.0" y="337.8" font-size="10" fill="#777" text-anchor="middle" >16.6 m²</text>
+<text x="205.0" y="184.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Master bedroom</text>
+<text x="205.0" y="208.8" font-size="10" fill="#777" text-anchor="middle" >11.4 m²</text>
+<text x="205.0" y="103.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Bathroom</text>
+<text x="205.0" y="127.8" font-size="10" fill="#777" text-anchor="middle" >5.7 m²</text>
+<text x="403.0" y="290.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Entrance hall</text>
+<text x="403.0" y="314.8" font-size="10" fill="#777" text-anchor="middle" >5.5 m²</text>
+<text x="332.0" y="415.0" font-size="9" fill="#888" text-anchor="middle" transform="rotate(-90 332.0 415.0)">corr.</text>
+<text x="426.0" y="452.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Bedroom 3</text>
+<text x="426.0" y="476.8" font-size="10" fill="#777" text-anchor="middle" >7.1 m²</text>
+<text x="426.0" y="362.8" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Bedroom 2</text>
+<text x="426.0" y="386.8" font-size="10" fill="#777" text-anchor="middle" >7.1 m²</text>
+<line x1="36.0" y1="624.0" x2="36.0" y2="60.0" stroke="#8a6d3b" />
+<line x1="31.2" y1="624.0" x2="40.8" y2="624.0" stroke="#8a6d3b" />
+<line x1="31.2" y1="60.0" x2="40.8" y2="60.0" stroke="#8a6d3b" />
+<text x="22.0" y="342.0" font-size="10.5" fill="#8a6d3b" text-anchor="middle" transform="rotate(-90 22.0 342.0)">14.1 m</text>
+<line x1="564.0" y1="624.0" x2="564.0" y2="248.0" stroke="#8a6d3b" />
+<line x1="559.2" y1="624.0" x2="568.8" y2="624.0" stroke="#8a6d3b" />
+<line x1="559.2" y1="248.0" x2="568.8" y2="248.0" stroke="#8a6d3b" />
+<text x="580.0" y="436.0" font-size="10.5" fill="#8a6d3b" text-anchor="middle" transform="rotate(-90 580.0 436.0)">9.4 m</text>
+<line x1="88.0" y1="24.0" x2="520.0" y2="24.0" stroke="#8a6d3b" />
+<line x1="88.0" y1="28.8" x2="88.0" y2="19.2" stroke="#8a6d3b" />
+<line x1="520.0" y1="28.8" x2="520.0" y2="19.2" stroke="#8a6d3b" />
+<text x="304.0" y="10.0" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >10.8 m</text>
+<line x1="88.0" y1="42.0" x2="304.0" y2="42.0" stroke="#8a6d3b" />
+<line x1="88.0" y1="46.8" x2="88.0" y2="37.2" stroke="#8a6d3b" />
+<line x1="304.0" y1="46.8" x2="304.0" y2="37.2" stroke="#8a6d3b" />
+<text x="196.0" y="58.8" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >5.4</text>
+<line x1="304.0" y1="42.0" x2="520.0" y2="42.0" stroke="#8a6d3b" />
+<line x1="304.0" y1="46.8" x2="304.0" y2="37.2" stroke="#8a6d3b" />
+<line x1="520.0" y1="46.8" x2="520.0" y2="37.2" stroke="#8a6d3b" />
+<text x="412.0" y="58.8" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >5.4</text>
+<line x1="126.4" y1="816.4" x2="446.4" y2="816.4" stroke="#8a6d3b" />
+<line x1="126.4" y1="821.2" x2="126.4" y2="811.6" stroke="#8a6d3b" />
+<line x1="446.4" y1="821.2" x2="446.4" y2="811.6" stroke="#8a6d3b" />
+<text x="286.4" y="834.4" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >8.0 m</text>
+<line x1="564.0" y1="800.0" x2="548.5" y2="841.2" stroke="#333" stroke-width="1.6"/>
+<circle cx="564.0" cy="800.0" r="2.5" fill="#333"/>
+<text x="542.2" y="858.0" font-size="12" fill="#333" text-anchor="middle" font-weight="700">N</text>
+<text x="164.0" y="836.0" font-size="11" fill="#4d7ba6" text-anchor="middle" >⌄ sea / fjord</text>
+<text x="404.0" y="14.0" font-size="11" fill="#777" text-anchor="middle" >road side ⌃</text>
+<text x="14.0" y="878.0" font-size="16" font-weight="700" fill="#222">Kalsneset 27 — new cabin concept</text>
+<text x="14.0" y="898.0" font-size="11" fill="#666">~90 m² BRA on one level · concrete slab · roofed footprint 127 m² (= existing cabin + annex) · storage 12 m² + tech 5.5 m² in concrete below deck · scale 1:100 @ 40px/m</text>
+</svg>

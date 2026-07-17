@@ -28,6 +28,8 @@ Click a building to select it, then **t** = move, **r** = rotate (vertical axis 
 
 **Terrain cut:** the terrain is carved down to each box's base inside its footprint (toggle with the "terrain cut" button), so buildings read as built into the slope — e.g. the storage volume under the deck. Recomputed automatically after every move/scale/delete.
 
-URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=off&cut=off`.
+URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=off&cut=off&new=1`.
 
-To model the new cabin: delete the three orange cabin boxes and shape replacements (duplicate + scale is quickest), then save.
+## New build concept
+
+The "new build" HUD button (or `?new=1`) swaps the existing cabin + deck for the replacement-cabin concept in `web/newbuild.json`: ~90 m² BRA on one level as two parallel wings on a concrete slab (same placement, orientation, ridge/eave heights and total roofed footprint as today's cabin + annex, to support the strandsone *erstatningshytte* dispensation), a covered open terrace at the sea corner, and two concrete rooms under the 8×3 m deck — 12 m² storage and a 5.5 m² technical room with its own entrance. `tools/new_build.py` generates the records and the dimensioned concept floor plan in `docs/floorplan.svg`, deriving all placement from the fitted existing-cabin records so regeneration keeps them aligned.

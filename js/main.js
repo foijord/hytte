@@ -46,6 +46,13 @@ let terrainGeo = null;
 let originalHeights = null;
 let excavateOn = true;
 let labelsOn = true;
+let newBuildOn = false;
+// records replaced by the new-build concept (web/newbuild.json)
+const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', '936839960:3', 'deck']);
+if (q.get('new') === '1') {
+  newBuildOn = true;
+  document.getElementById('newb').textContent = 'new build: on';
+}
 if (q.get('labels') === 'off') {
   labelsOn = false;
   document.getElementById('labels').textContent = 'labels: off';
@@ -330,8 +337,27 @@ async function addBuildings() {
   } else {
     list = await (await fetch('web/buildings.json')).json();
   }
+  try {
+    // new-build concept records; skip ids already present (saved edits)
+    const have = new Set(list.map(b => String(b.id)));
+    const nb = await fetch('web/newbuild.json');
+    if (nb.ok) for (const b of await nb.json()) {
+      if (!have.has(String(b.id))) list.push(b);
+    }
+  } catch { /* optional */ }
   for (const b of list) makeBuildingGroup(normalizeRec(b));
+  applyNewBuild();
   return list.length;
+}
+
+// swap the existing cabin + deck for the new-build concept (and back)
+function applyNewBuild() {
+  for (const group of buildingsGroup.children) {
+    const id = String(group.userData.rec.id);
+    if (OLD_CABIN_IDS.has(id)) group.visible = !newBuildOn;
+    else if (id.startsWith('newbuild:')) group.visible = newBuildOn;
+  }
+  if (selected && !selected.visible) select(null);
 }
 
 // -------------------------------------------------- terrain excavation
@@ -349,6 +375,7 @@ function applyExcavation() {
     const z0 = m.originN - m.n0;
     for (const group of buildingsGroup.children) {
       const rec = group.userData.rec;
+      if (!group.visible) continue;     // hidden variant (old/new build toggle)
       if (rec.open) continue;           // outdoor roofs keep the natural ground
       const ov = rec.flat ? 0 : rec.overhang;
       const hw = Math.max((rec.w * group.scale.x) / 2 - ov, 0.2) + m.res / 2;
@@ -411,7 +438,7 @@ function refreshLabel(group) {
     old.material.dispose();
     group.userData.label = null;
   }
-  if (!labelsOn || !group.userData.rec.onParcel) return;
+  if (!labelsOn || !group.userData.rec.onParcel || !group.visible) return;
   const text = labelText(group);
   const c = document.createElement('canvas');
   let ctx = c.getContext('2d');
@@ -577,7 +604,7 @@ renderer.domElement.addEventListener('pointerup', e => {
     if (h.object.userData.isHandle) return;   // clicked the roof gizmo
     let o = h.object;
     while (o && !o.userData.isBuilding) o = o.parent;
-    if (o) { group = o; break; }
+    if (o && o.visible) { group = o; break; }
   }
   select(group);
 });
@@ -738,6 +765,14 @@ document.getElementById('excav').addEventListener('click', e => {
   excavateOn = !excavateOn;
   e.target.textContent = `terrain cut: ${excavateOn ? 'on' : 'off'}`;
   applyExcavation();
+});
+
+document.getElementById('newb').addEventListener('click', e => {
+  newBuildOn = !newBuildOn;
+  e.target.textContent = `new build: ${newBuildOn ? 'on' : 'off'}`;
+  applyNewBuild();
+  applyExcavation();
+  refreshAllLabels();
 });
 
 document.getElementById('labels').addEventListener('click', e => {

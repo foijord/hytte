@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kalsneset 27 — documents</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; background: #0b1420; color: #cfe0f0;
+    font: 15px/1.6 system-ui, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 20px 80px; }
+  a { color: #7fb2d9; }
+  h1, h2, h3 { color: #ffe95c; line-height: 1.25; }
+  h1 { font-size: 1.5em; } h2 { font-size: 1.2em; margin-top: 1.8em; }
+  hr { border: 0; border-top: 1px solid #24384f; margin: 1.6em 0; }
+  code { background: #16283c; padding: 1px 5px; border-radius: 4px; font-size: .92em; }
+  em { color: #9fb2c4; }
+  table { border-collapse: collapse; margin: 0.8em 0; width: 100%; }
+  .tablewrap { overflow-x: auto; }
+  th, td { border: 1px solid #2c4460; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #16283c; color: #ffe95c; }
+  tr:nth-child(even) td { background: #101d2d; }
+  li { margin: 0.25em 0; }
+  #nav { margin-bottom: 18px; font-size: 13px; }
+  #nav a { margin-right: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <nav id="nav">
+    <a href="index.html">← 3D model</a>
+    <a href="docs.html?doc=plan">build plan</a>
+    <a href="docs/floorplan.svg">floor plan</a>
+    <a href="https://github.com/foijord/Hytte">repository</a>
+  </nav>
+  <article id="content">loading…</article>
+</main>
+<script>
+// minimal markdown renderer for the subset used in docs/*.md
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function inline(s) {
+  return s
+    .replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/(^|[\s(])(https?:\/\/[^\s)<]+)/g, '$1<a href="$2">$2</a>');
+}
+function render(md) {
+  const out = [];
+  const lines = md.split(/\r?\n/);
+  let i = 0, para = [], list = null;
+  const flushPara = () => {
+    if (para.length) { out.push(`<p>${inline(esc(para.join(' ')))}</p>`); para = []; }
+  };
+  const flushList = () => {
+    if (list) { out.push(`<${list.tag}>` + list.items.map(x => `<li>${x}</li>`).join('') + `</${list.tag}>`); list = null; }
+  };
+  while (i < lines.length) {
+    const line = lines[i];
+    const t = line.trim();
+    if (t.startsWith('|')) {                       // table block
+      flushPara(); flushList();
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) rows.push(lines[i++].trim());
+      const cells = r => r.replace(/^\||\|$/g, '').split('|').map(c => inline(esc(c.trim())));
+      let html = '<div class="tablewrap"><table>';
+      let header = true;
+      for (const r of rows) {
+        if (/^\|[\s:|-]+\|$/.test(r)) { header = false; continue; }
+        const tag = header ? 'th' : 'td';
+        html += '<tr>' + cells(r).map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+        if (header) header = false;                // only first row is header
+      }
+      out.push(html + '</table></div>');
+      continue;
+    }
+    i++;
+    if (!t) { flushPara(); flushList(); continue; }
+    const h = t.match(/^(#{1,4})\s+(.*)/);
+    if (h) { flushPara(); flushList(); out.push(`<h${h[1].length}>${inline(esc(h[2]))}</h${h[1].length}>`); continue; }
+    if (/^(-{3,}|\*{3,})$/.test(t)) { flushPara(); flushList(); out.push('<hr>'); continue; }
+    const ul = t.match(/^[-*]\s+(.*)/);
+    const ol = t.match(/^\d+\.\s+(.*)/);
+    if (ul || ol) {
+      flushPara();
+      const tag = ul ? 'ul' : 'ol';
+      if (!list || list.tag !== tag) { flushList(); list = { tag, items: [] }; }
+      list.items.push(inline(esc((ul || ol)[1])));
+      continue;
+    }
+    if (list) { list.items[list.items.length - 1] += ' ' + inline(esc(t)); continue; }
+    para.push(t);
+  }
+  flushPara(); flushList();
+  return out.join('\n');
+}
+const doc = (new URLSearchParams(location.search).get('doc') || 'plan').replace(/[^\w-]/g, '');
+fetch(`docs/${doc}.md`)
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+  .then(md => { document.getElementById('content').innerHTML = render(md); document.title = `Kalsneset 27 — ${doc}`; })
+  .catch(e => { document.getElementById('content').textContent = `could not load docs/${doc}.md (${e.message})`; });
+</script>
+</body>
+</html>

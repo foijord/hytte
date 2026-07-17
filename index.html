@@ -19,6 +19,8 @@
     border-radius: 4px; font: 12px system-ui, sans-serif; cursor: pointer;
   }
   #hud button:hover { background: #29486e; }
+  #hud a { pointer-events: auto; color: #7fb2d9; text-decoration: none; }
+  #hud a:hover { text-decoration: underline; }
 </style>
 <script type="importmap">
 {
@@ -40,7 +42,10 @@
   <button id="reset">reset edits</button>
   <button id="excav">terrain cut: on</button>
   <button id="newb">new build: off</button>
-  <button id="labels">labels: on</button>
+  <button id="labels">labels: on</button><br>
+  <a href="docs.html?doc=plan">build plan</a> ·
+  <a href="docs/floorplan.svg">floor plan</a> ·
+  <a href="https://github.com/foijord/Hytte">repo</a>
 </div>
 <script type="module" src="js/main.js"></script>
 </body>

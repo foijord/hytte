@@ -79,6 +79,9 @@ def main():
     u_deck, v_deck = to_uv(deck['cE'], deck['cN'])
     assert u_deck < -w1['w'] / 2, 'deck expected off the u- gable end'
     u_sea = -w1['w'] / 2
+    # owner 2026-07-20: whole new build 0.5 m to the right (~ENE) as seen
+    # looking toward the sea = -0.5 in the local across-axis
+    v_deck -= 0.5
     deck_top = deck['base'] + deck['ridge']
     base = deck_top + 0.06                    # slab just above the deck
 

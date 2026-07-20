@@ -250,7 +250,7 @@ let buildingsSource = 'generated';
 function normalizeRec(b) {
   const rec = {
     overhang: 0, open: false, backWall: null, variant: null, mono: false,
-    eave2: null, ridgeOff: 0, ...b,
+    eave2: null, ridgeOff: 0, noCut: false, ...b,
   };
   if (!Array.isArray(rec.cutExt) || rec.cutExt.length !== 4) rec.cutExt = [0, 0, 0, 0];
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
@@ -557,6 +557,7 @@ function applyExcavation() {
       const R = isPad ? PAD_FALLOFF : (rec.type === 'slab' ? SLAB_FALLOFF : EXC_FALLOFF);
       if (!group.visible) continue;     // hidden variant (old/new build toggle)
       if (rec.open) continue;           // outdoor roofs keep the natural ground
+      if (rec.noCut) continue;          // e.g. stepped cabins: their slabs cut
       if (NO_CUT_IDS.has(String(rec.id))) continue;   // sits on natural ground
       const ov = rec.flat ? 0 : rec.overhang;
       const hw = Math.max((rec.w * group.scale.x) / 2 - ov, 0.2) + m.res / 2;
@@ -1006,6 +1007,7 @@ function serialize() {
       mono: rec.mono,
       eave2: rec.eave2 ?? null,
       ridgeOff: rec.ridgeOff ?? 0,
+      noCut: rec.noCut,
       variant: rec.variant ?? null,
       variantLabel: rec.variantLabel ?? null,
       cutExt: rec.cutExt,

@@ -153,13 +153,13 @@ def main():
         return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base - step,
                    round(road_wall - slope * ov, 2), ridge_h, pitch,
                    overhang=ov, ridgeAxis='d', ridgeOff=off,
-                   eave2=round(sea_wall - slope * ov, 2),
+                   eave2=round(sea_wall - slope * ov, 2), noCut=True,
                    variant=variant, variantLabel=label)
 
     def stepped_slabs(cabin, depth, W, step, front_d):
         """Trappet slab: lower front (sea) half at the living level, upper
-        back half a step up; the back slab is thickened so it closes the
-        excavation down to the front level."""
+        back half a step up. The cabin volume itself is noCut, so these two
+        slabs define the stepped excavation - front deep, back shallow."""
         lo = cabin['base']
         e1, n1 = to_en(u_sea + front_d / 2, v_deck)
         e2, n2 = to_en(u_sea + front_d + (depth - front_d) / 2, v_deck)
@@ -170,7 +170,7 @@ def main():
                     variant=cabin['variant'], variantLabel=cabin['variantLabel'])
         back = rec(f'{cabin["id"]}:slab2', e2, n2,
                    round(depth - front_d + 0.05, 2), round(W + 0.05, 2),
-                   lo - 0.35, step + 0.35, step + 0.35, 0.0,
+                   lo + step - 0.35, 0.35, 0.35, 0.0,
                    type='slab', flat=True, overhang=0.0, onParcel=False,
                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
         return [front, back]

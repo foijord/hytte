@@ -22,12 +22,18 @@ ROOT = Path(__file__).resolve().parent.parent
 # published widths/lengths are consistent with ridge/gesims/pitch geometry.
 DESIGNS = [
     dict(key='A', label='Saltdalshytta Frem 80 · 27°',      # saltdalshytta.no/frem-80:
-         walls_l=11.7, walls_w=6.3, pitch=27.0,             # BYA 80, BRA 67.5, no hems,
-         wall_h=2.90, overhang=0.5),                        # monehoyde 4.5
+         form='gable', walls_l=11.7, walls_w=6.3,           # BYA 80, BRA 67.5, no hems,
+         pitch=27.0, wall_h=2.90, overhang=0.5),            # monehoyde 4.5
     dict(key='B', label='Familiehytta Furutangen 75 · 30°', # BRA 74 + hems ~38,
-         walls_l=11.15, walls_w=7.6, pitch=30.0,            # ridge 5.0 / gesims 2.8
-         wall_h=2.8, overhang=0.6),
-]
+         form='gable', walls_l=11.15, walls_w=7.6,          # ridge 5.0 / gesims 2.8
+         pitch=30.0, wall_h=2.8, overhang=0.6),
+    dict(key='C', label='Saltdalshytta Frem 95 · 22°',      # saltdalshytta.no/frem-95:
+         form='gable', walls_l=9.9, walls_w=9.3,            # BYA 96, BRA 79.2, 3 soverom,
+         pitch=22.0, wall_h=2.42, overhang=0.5),            # monehoyde 4.3, no hems
+    dict(key='D', label='Saltdalshytta Nova 120 · pulttak', # saltdalshytta.no/nova-208
+         form='mono', depth=6.7, width=14.7,                # (page titled Nova 120): BYA 117,
+         pitch=6.8, high_wall=4.4, overhang=0.5),           # BRA 101, grunnflate 98.4; high
+]                                                           # wall ESTIMATED (not published)
 WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
 PITCH = 30.0
@@ -113,15 +119,33 @@ def main():
                    type='slab', flat=True, overhang=0.0,
                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
 
+    def mono_cabin(id_, variant, label, depth, width, pitch, high_wall, ov):
+        """Pulttak: high wall (window side) toward the sea, roof sloping
+        down toward the road. eave/ridge are the low/high ROOF edges."""
+        slope = math.tan(math.radians(pitch))
+        roof_u, roof_v = depth + 2 * ov, width + 2 * ov
+        ridge = high_wall + slope * ov          # sea-side roof edge
+        eave = ridge - slope * roof_u           # road-side roof edge
+        u_c = u_sea - ov + roof_u / 2
+        cE_, cN_ = to_en(u_c, v_deck)
+        return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2),
+                   base, eave, ridge, pitch, overhang=ov, mono=True,
+                   variant=variant, variantLabel=label)
+
     out = []
     for d in DESIGNS:
-        cabin = gable_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
-                            d['walls_l'], d['walls_w'], d['pitch'],
-                            d['wall_h'], d['overhang'])
-        out += [cabin, slab(cabin, d['walls_l'], d['walls_w']),
-                fit_deck(cabin, d['walls_w'])]
-        print(f"  {d['label']}: walls {d['walls_l']}x{d['walls_w']}, "
-              f"ridge abs {base + cabin['ridge']:.2f}")
+        if d.get('form') == 'mono':
+            cabin = mono_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
+                               d['depth'], d['width'], d['pitch'],
+                               d['high_wall'], d['overhang'])
+            L, W = d['depth'], d['width']
+        else:
+            cabin = gable_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
+                                d['walls_l'], d['walls_w'], d['pitch'],
+                                d['wall_h'], d['overhang'])
+            L, W = d['walls_l'], d['walls_w']
+        out += [cabin, slab(cabin, L, W), fit_deck(cabin, W)]
+        print(f"  {d['label']}: walls {L}x{W}, high point abs {base + cabin['ridge']:.2f}")
 
     path = ROOT / 'web' / 'newbuild.json'
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')

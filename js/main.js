@@ -248,7 +248,7 @@ scene.add(buildingsGroup);
 let buildingsSource = 'generated';
 
 function normalizeRec(b) {
-  const rec = { overhang: 0, open: false, backWall: null, variant: null, ...b };
+  const rec = { overhang: 0, open: false, backWall: null, variant: null, mono: false, ...b };
   if (!Array.isArray(rec.cutExt) || rec.cutExt.length !== 4) rec.cutExt = [0, 0, 0, 0];
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
@@ -268,6 +268,7 @@ function wallColor(rec) {
 
 function pitchDeg(rec, sy = 1, sx = 1, sz = 1) {
   if (rec.flat) return 0;
+  if (rec.mono) return THREE.MathUtils.radToDeg(Math.atan((rec.ridge - rec.eave) * sy / (rec.w * sx)));
   const span = (rec.ridgeAxis === 'd' ? rec.w * sx : rec.d * sz) / 2;
   return THREE.MathUtils.radToDeg(Math.atan((rec.ridge - rec.eave) * sy / span));
 }
@@ -276,6 +277,25 @@ function wallsGeometry(rec) {
   if (rec.flat) {
     const g = new THREE.BoxGeometry(rec.w, rec.ridge, rec.d);
     g.translate(0, rec.ridge / 2, 0);
+    return g;
+  }
+  if (rec.mono) {
+    // pulttak: high roof edge at local w- (ridge), low at w+ (eave);
+    // wall tops follow the roof plane, inset by the overhang
+    const ov = rec.overhang;
+    const hw = Math.max(rec.w / 2 - ov, 0.2);
+    const hd = Math.max(rec.d / 2 - ov, 0.2);
+    const slope = (rec.ridge - rec.eave) / rec.w;
+    const hHigh = Math.max(rec.ridge - slope * ov, 0.3);
+    const hLow = Math.max(rec.eave + slope * ov, 0.3);
+    const shape = new THREE.Shape([
+      new THREE.Vector2(-hw, 0),
+      new THREE.Vector2(hw, 0),
+      new THREE.Vector2(hw, hLow),
+      new THREE.Vector2(-hw, hHigh),
+    ]);
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 2 * hd, bevelEnabled: false });
+    g.translate(0, 0, -hd);
     return g;
   }
   // build with ridge along local x; W = extent along ridge, D across
@@ -299,6 +319,17 @@ function wallsGeometry(rec) {
 }
 
 function roofGeometry(rec) {
+  if (rec.mono) {
+    const W = rec.w, D = rec.d, e = rec.eave, r = rec.ridge;
+    const verts = new Float32Array([
+      -W / 2, r, -D / 2,   W / 2, e, -D / 2,   W / 2, e, D / 2,
+      -W / 2, r, -D / 2,   W / 2, e, D / 2,   -W / 2, r, D / 2,
+    ]);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    g.computeVertexNormals();
+    return g;
+  }
   const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
   const e = rec.eave, r = rec.ridge;
   const verts = new Float32Array([
@@ -672,7 +703,7 @@ function attachRoofGizmo(group) {
     ridgeHandle.removeFromParent();
     return;
   }
-  ridgeHandle.position.set(0, rec.ridge, 0);
+  ridgeHandle.position.set(rec.mono ? -(rec.w / 2 - rec.overhang) : 0, rec.ridge, 0);
   group.add(ridgeHandle);
   tcRoof.attach(ridgeHandle);
 }
@@ -772,9 +803,9 @@ tcRoof.addEventListener('dragging-changed', e => { controls.enabled = !e.value; 
 tcRoof.addEventListener('objectChange', () => {
   if (!selected) return;
   const rec = selected.userData.rec;
-  const span = (rec.ridgeAxis === 'd' ? rec.w : rec.d) / 2;
+  const span = rec.mono ? rec.w : (rec.ridgeAxis === 'd' ? rec.w : rec.d) / 2;
   rec.ridge = THREE.MathUtils.clamp(ridgeHandle.position.y, rec.eave + 0.1, rec.eave + span * 1.8);
-  ridgeHandle.position.set(0, rec.ridge, 0);
+  ridgeHandle.position.set(rec.mono ? -(rec.w / 2 - rec.overhang) : 0, rec.ridge, 0);
   rebuildBuilding(selected);
   refreshLabel(selected);
   updateSelInfo();
@@ -961,6 +992,7 @@ function serialize() {
       overhang: +rec.overhang.toFixed(2),
       open: rec.open,
       backWall: rec.backWall,
+      mono: rec.mono,
       variant: rec.variant ?? null,
       variantLabel: rec.variantLabel ?? null,
       cutExt: rec.cutExt,
@@ -1034,7 +1066,7 @@ function nudgeEave(delta) {
 function toggleGable() {
   if (!selected) return;
   const rec = selected.userData.rec;
-  if (rec.type === 'deck') return;
+  if (rec.type === 'deck' || rec.mono) return;
   if (rec.flat) {
     rec.flat = false;
     rec.ridgeAxis = rec.w >= rec.d ? 'w' : 'd';

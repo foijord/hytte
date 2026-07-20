@@ -127,7 +127,7 @@ def main():
     out.append(rec('newbuild:storage', deck['cE'], deck['cN'],
                    deck['w'], deck['d'], deck_top - STORAGE_H,
                    STORAGE_H, STORAGE_H, 0.0,
-                   type='deck', flat=True, overhang=0.0,
+                   type='slab', flat=True, overhang=0.0,
                    angleDeg=deck['angleDeg'], variant=None,
                    variantLabel=None))
 

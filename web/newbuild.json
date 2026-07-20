@@ -254,7 +254,7 @@
  },
  {
   "id": "newbuild:storage",
-  "type": "deck",
+  "type": "slab",
   "onParcel": true,
   "cE": 71423.58,
   "cN": 6458106.21,

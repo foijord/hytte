@@ -22,11 +22,13 @@ Scene coordinates: meters, origin at the address point (E 71428.47, N 6458099.03
 
 ## Editing buildings
 
-Click a building to select it, then **t** = move, **r** = rotate (vertical axis only), **s** = scale, **d** = duplicate, **Del** = remove, **Esc** = deselect. Roof controls on the selection: drag the **yellow ridge handle** vertically to change the roof pitch, **g** toggles gabled/flat, **e**/**E** lowers/raises the eave line, **o**/**O** shrinks/grows the roof overhang. The HUD and the floating labels show live measurements (footprint, ridge and eave heights above the floor, pitch in degrees) while you adjust; labels toggle with the "labels" button.
+Click a building to select it, then **t** = move, **r** = rotate (vertical axis only), **s** = scale, **d** = duplicate, **Del** = remove, **Esc** = deselect. Roof controls on the selection: drag the **yellow ridge handle** vertically to change the roof pitch, **g** toggles gabled/flat, **e**/**E** lowers/raises the eave line, **o**/**O** shrinks/grows the roof overhang. The HUD and the floating labels show live measurements (footprint, ridge and eave heights above the floor, pitch in degrees) while you adjust; labels toggle with the "labels" button. When a building is selected, the HUD shows **numeric fields** for w, d, eave and ridge — type a value and press Enter for exact dimensions.
 
 **Saving:** **Ctrl+S** or the "save" button POSTs the scene to the dev server, which writes `web/buildings_edited.json`. The viewer prefers that file over the generated `web/buildings.json`, so re-running the extractors never clobbers your edits. "reset edits" deletes the edited file and reloads the generated baseline.
 
-**Terrain cut:** the terrain is carved down to each box's base inside its footprint (toggle with the "terrain cut" button), so buildings read as built into the slope — e.g. the storage volume under the deck. Recomputed automatically after every move/scale/delete.
+**Terrain cut:** the terrain is carved down to each box's base inside its footprint, with a 2.5 m smoothstep-graded falloff outward so the excavation blends into the slope; carved areas are tinted grey-brown so the blasting extent is visible (toggle with the "terrain cut" button). Recomputed automatically after every move/scale/delete.
+
+**Walk mode:** the "walk" button drops a 1.8 m person at the orbit point and takes their view (eye 1.7 m). WASD/arrows walk, drag looks around; on touch, the left third of the screen is a movement joystick and the rest looks. You can walk onto decks and slabs; Esc or the button exits, leaving the figure standing as a scale reference. `?walk=1` starts walking at `tgt`.
 
 URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=on&cut=off&new=A..E|off&sun=month,hour|off`. Defaults: new build variant A, sun simulation on (mid-June 15:00 solar), labels off.
 

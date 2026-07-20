@@ -173,6 +173,7 @@ async function buildTerrain() {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(cols * rows * 3).fill(1), 3));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
   geo.computeVertexNormals();
   terrainGeo = geo;
@@ -186,7 +187,7 @@ async function buildTerrain() {
       await new Promise(r => setTimeout(r, 400));
     }
   }
-  const mat = new THREE.MeshStandardMaterial({ roughness: 1.0, metalness: 0.0 });
+  const mat = new THREE.MeshStandardMaterial({ roughness: 1.0, metalness: 0.0, vertexColors: true });
   if (tex) {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -453,14 +454,22 @@ function applyNewBuild() {
 // -------------------------------------------------- terrain excavation
 
 // Carve the terrain down to each building's base inside its wall footprint,
-// so buildings (and the under-deck storage) read as built into the slope.
+// with a smoothstep-graded falloff outward so the cut blends into the
+// slope instead of a vertical cliff. Carved vertices get a grey-brown
+// tint so the excavation extent is visible on the ortho.
+const EXC_FALLOFF = 2.5;    // m, graded transition beyond the footprint
 function applyExcavation() {
   if (!terrainGeo) return;
   const m = terrainMeta;
   const pos = terrainGeo.attributes.position;
   const arr = pos.array;
-  for (let k = 0; k < originalHeights.length; k++) arr[k * 3 + 1] = originalHeights[k];
+  const col = terrainGeo.attributes.color.array;
+  for (let k = 0; k < originalHeights.length; k++) {
+    arr[k * 3 + 1] = originalHeights[k];
+    col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = 1;
+  }
   if (excavateOn) {
+    const R = EXC_FALLOFF;
     const x0 = m.e0 - m.originE;
     const z0 = m.originN - m.n0;
     for (const group of buildingsGroup.children) {
@@ -473,7 +482,7 @@ function applyExcavation() {
       const base = group.position.y;
       const cos = Math.cos(group.rotation.y), sin = Math.sin(group.rotation.y);
       const cx = group.position.x, cz = group.position.z;
-      const r = Math.hypot(hw, hd);
+      const r = Math.hypot(hw + R, hd + R);
       const jmin = Math.max(0, Math.floor((cx - r - x0) / m.res));
       const jmax = Math.min(m.cols - 1, Math.ceil((cx + r - x0) / m.res));
       const imin = Math.max(0, Math.floor((cz - r - z0) / m.res));
@@ -484,15 +493,30 @@ function applyExcavation() {
           const dx = x0 + j * m.res - cx;
           const u = dx * cos - dz * sin;
           const v = dx * sin + dz * cos;
-          if (Math.abs(u) <= hw && Math.abs(v) <= hd) {
-            const k = (i * m.cols + j) * 3 + 1;
-            if (arr[k] > base) arr[k] = base;
-          }
+          const du = Math.max(Math.abs(u) - hw, 0);
+          const dv = Math.max(Math.abs(v) - hd, 0);
+          const dist = Math.hypot(du, dv);
+          if (dist > R) continue;
+          const kk = i * m.cols + j;
+          const t = dist / R;
+          const s = t * t * (3 - 2 * t);                 // smoothstep
+          const target = base + (originalHeights[kk] - base) * s;
+          if (arr[kk * 3 + 1] > target) arr[kk * 3 + 1] = target;
         }
+      }
+    }
+    for (let k = 0; k < originalHeights.length; k++) {
+      const cut = originalHeights[k] - arr[k * 3 + 1];
+      if (cut > 0.03) {
+        const f = Math.min(cut / 1.5, 1) * 0.35;         // deeper cut = stronger tint
+        col[k * 3] = 1 - 0.6 * f;
+        col[k * 3 + 1] = 1 - 0.7 * f;
+        col[k * 3 + 2] = 1 - 0.8 * f;
       }
     }
   }
   pos.needsUpdate = true;
+  terrainGeo.attributes.color.needsUpdate = true;
   terrainGeo.computeVertexNormals();
 }
 
@@ -619,10 +643,16 @@ function select(group) {
 }
 
 function updateSelInfo() {
+  document.getElementById('editrow').style.display = selected ? '' : 'none';
   if (!selected) {
     selInfo.textContent = 'click a building to select · t/r/s: mode · g: gable · e/E: eave · o/O: overhang · d: duplicate · del: remove';
     return;
   }
+  const r = selected.userData.rec;
+  document.getElementById('in_w').value = (r.w * selected.scale.x).toFixed(2);
+  document.getElementById('in_d').value = (r.d * selected.scale.z).toFixed(2);
+  document.getElementById('in_eave').value = (r.eave * selected.scale.y).toFixed(2);
+  document.getElementById('in_ridge').value = (r.ridge * selected.scale.y).toFixed(2);
   const m = terrainMeta;
   const rec = selected.userData.rec;
   const e = (selected.position.x + m.originE).toFixed(1);
@@ -682,6 +712,7 @@ tcRoof.addEventListener('objectChange', () => {
 
 renderer.domElement.addEventListener('pointerdown', e => downPos.set(e.clientX, e.clientY));
 renderer.domElement.addEventListener('pointerup', e => {
+  if (walker.on) return;                                                  // walking
   if (tc.dragging || tc.axis || tcRoof.dragging || tcRoof.axis) return;   // gizmo interaction
   if (downPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) > 5) return; // orbit drag
   const ndc = new THREE.Vector2(
@@ -702,6 +733,7 @@ renderer.domElement.addEventListener('pointerup', e => {
 
 // double-click terrain or a building to move the orbit point there
 renderer.domElement.addEventListener('dblclick', e => {
+  if (walker.on) return;
   const ndc = new THREE.Vector2(
     (e.clientX / window.innerWidth) * 2 - 1,
     -(e.clientY / window.innerHeight) * 2 + 1,
@@ -717,6 +749,115 @@ renderer.domElement.addEventListener('dblclick', e => {
     break;
   }
 });
+
+// ------------------------------------------------------------- walk mode
+// first-person view 1.7 m above the feet of a 1.8 m character; the figure
+// stays behind as a scale reference when leaving walk mode
+const walker = {
+  on: false, yaw: 0, pitch: 0, foot: 0,
+  pos: new THREE.Vector3(), keys: new Set(),
+  movePtr: null, moveStart: null, moveVec: { x: 0, y: 0 },
+  lookPtr: null, lastLook: null,
+};
+const person = new THREE.Group();
+{
+  const pmat = new THREE.MeshStandardMaterial({ color: 0xd9534f, roughness: 0.7 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 1.4, 12), pmat);
+  body.position.y = 0.75;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), pmat);
+  head.position.y = 1.63;
+  person.add(body, head);
+  person.visible = false;
+  person.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(person);
+}
+
+function terrainYAt(x, z) {
+  const m = terrainMeta;
+  if (!m) return 0;
+  const arr = terrainGeo.attributes.position.array;
+  const e = x + m.originE, n = m.originN - z;
+  const fx = Math.min(Math.max((e - m.e0) / m.res, 0), m.cols - 1.001);
+  const fz = Math.min(Math.max((m.n0 - n) / m.res, 0), m.rows - 1.001);
+  const j = Math.floor(fx), i = Math.floor(fz);
+  const dx = fx - j, dz = fz - i;
+  const h = (a, b) => arr[(a * m.cols + b) * 3 + 1];
+  return (h(i, j) * (1 - dx) + h(i, j + 1) * dx) * (1 - dz)
+       + (h(i + 1, j) * (1 - dx) + h(i + 1, j + 1) * dx) * dz;
+}
+
+// walkable floor: terrain, plus tops of flat boxes (decks, slabs) that are
+// within stepping height of the current feet
+function floorAt(x, z, prevFoot) {
+  let f = terrainYAt(x, z);
+  for (const g of buildingsGroup.children) {
+    const rec = g.userData.rec;
+    if (!g.visible || !rec.flat) continue;
+    const cos = Math.cos(g.rotation.y), sin = Math.sin(g.rotation.y);
+    const dx = x - g.position.x, dz = z - g.position.z;
+    const u = dx * cos - dz * sin, v = dx * sin + dz * cos;
+    if (Math.abs(u) <= (rec.w * g.scale.x) / 2 && Math.abs(v) <= (rec.d * g.scale.z) / 2) {
+      const top = g.position.y + rec.ridge * g.scale.y;
+      if (top <= prevFoot + 0.55 && top > f) f = top;
+    }
+  }
+  return f;
+}
+
+function setWalk(on) {
+  walker.on = on;
+  document.getElementById('walk').textContent = `walk: ${on ? 'on' : 'off'}`;
+  controls.enabled = !on;
+  if (on) {
+    select(null);
+    walker.pos.set(controls.target.x, 0, controls.target.z);
+    walker.foot = floorAt(walker.pos.x, walker.pos.z, Infinity);
+    const d = new THREE.Vector3();
+    camera.getWorldDirection(d);
+    walker.yaw = Math.atan2(-d.x, -d.z);
+    walker.pitch = 0;
+    person.visible = false;
+  } else {
+    walker.keys.clear();
+    walker.moveVec.x = walker.moveVec.y = 0;
+    person.position.set(walker.pos.x, walker.foot, walker.pos.z);
+    person.visible = true;
+    controls.target.set(walker.pos.x, walker.foot + 1.2, walker.pos.z);
+    camera.position.set(walker.pos.x + 9, walker.foot + 7, walker.pos.z + 9);
+    camera.rotation.set(0, 0, 0);
+  }
+}
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (!walker.on) return;
+  if (e.pointerType === 'touch' && e.clientX < window.innerWidth * 0.35 && walker.movePtr === null) {
+    walker.movePtr = e.pointerId;                 // virtual joystick (left)
+    walker.moveStart = { x: e.clientX, y: e.clientY };
+  } else if (walker.lookPtr === null) {
+    walker.lookPtr = e.pointerId;
+    walker.lastLook = { x: e.clientX, y: e.clientY };
+  }
+});
+window.addEventListener('pointermove', e => {
+  if (!walker.on) return;
+  if (e.pointerId === walker.movePtr) {
+    walker.moveVec.x = THREE.MathUtils.clamp((e.clientX - walker.moveStart.x) / 60, -1, 1);
+    walker.moveVec.y = THREE.MathUtils.clamp((e.clientY - walker.moveStart.y) / 60, -1, 1);
+  } else if (e.pointerId === walker.lookPtr) {
+    walker.yaw -= (e.clientX - walker.lastLook.x) * 0.005;
+    walker.pitch = THREE.MathUtils.clamp(
+      walker.pitch - (e.clientY - walker.lastLook.y) * 0.005, -1.35, 1.35);
+    walker.lastLook = { x: e.clientX, y: e.clientY };
+  }
+});
+window.addEventListener('pointerup', e => {
+  if (e.pointerId === walker.movePtr) {
+    walker.movePtr = null;
+    walker.moveVec.x = walker.moveVec.y = 0;
+  }
+  if (e.pointerId === walker.lookPtr) walker.lookPtr = null;
+});
+window.addEventListener('keyup', e => walker.keys.delete(e.code));
 
 let customCount = 0;
 let dirty = false;
@@ -841,7 +982,41 @@ function toggleGable() {
   markDirty();
 }
 
+// numeric editing of the selected building's dimensions
+function bindDim(id, apply) {
+  document.getElementById(id).addEventListener('change', e => {
+    if (!selected) return;
+    const v = parseFloat(e.target.value);
+    if (!Number.isFinite(v)) { updateSelInfo(); return; }
+    selected.scale.set(1, 1, 1);          // typed values are absolute
+    apply(selected.userData.rec, v);
+    rebuildBuilding(selected);
+    attachRoofGizmo(selected);
+    applyExcavation();
+    refreshLabel(selected);
+    updateSelInfo();
+    markDirty();
+  });
+}
+bindDim('in_w', (r, v) => { r.w = Math.max(v, 0.5); });
+bindDim('in_d', (r, v) => { r.d = Math.max(v, 0.5); });
+bindDim('in_eave', (r, v) => {
+  if (r.flat) { r.eave = r.ridge = Math.max(v, 0.2); }
+  else r.eave = Math.min(Math.max(v, 0.3), r.ridge - 0.1);
+});
+bindDim('in_ridge', (r, v) => {
+  if (r.flat) { r.eave = r.ridge = Math.max(v, 0.2); }
+  else r.ridge = Math.max(v, r.eave + 0.1);
+});
+
 window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;   // typing in a dimension field
+  if (walker.on) {
+    if (e.key === 'Escape') { setWalk(false); return; }
+    walker.keys.add(e.code);
+    if (e.code.startsWith('Arrow')) e.preventDefault();
+    return;
+  }
   if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); return; }
   if (e.key === 't') setMode('translate');
   if (e.key === 'r') setMode('rotate');
@@ -865,6 +1040,7 @@ window.addEventListener('keydown', e => {
 });
 
 document.getElementById('save').addEventListener('click', save);
+document.getElementById('walk').addEventListener('click', () => setWalk(!walker.on));
 
 document.getElementById('reset').addEventListener('click', async () => {
   if (!confirm('Discard all edits and reload the generated buildings?')) return;
@@ -918,8 +1094,31 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
-  controls.update();
+  const dt = Math.min(clock.getDelta(), 0.1);
+  if (walker.on && terrainMeta) {
+    let f = 0, s = 0;
+    const k = walker.keys;
+    if (k.has('KeyW') || k.has('ArrowUp')) f += 1;
+    if (k.has('KeyS') || k.has('ArrowDown')) f -= 1;
+    if (k.has('KeyA') || k.has('ArrowLeft')) s -= 1;
+    if (k.has('KeyD') || k.has('ArrowRight')) s += 1;
+    f += -walker.moveVec.y;
+    s += walker.moveVec.x;
+    if (f || s) {
+      const sp = 3.0 * dt / Math.max(1, Math.hypot(f, s));
+      const sy = Math.sin(walker.yaw), cy = Math.cos(walker.yaw);
+      walker.pos.x += (-sy * f + cy * s) * sp;
+      walker.pos.z += (-cy * f - sy * s) * sp;
+    }
+    const fl = floorAt(walker.pos.x, walker.pos.z, walker.foot);
+    walker.foot += (fl - walker.foot) * Math.min(1, dt * 10);
+    camera.position.set(walker.pos.x, walker.foot + 1.7, walker.pos.z);
+    camera.rotation.set(walker.pitch, walker.yaw, 0, 'YXZ');
+  } else {
+    controls.update();
+  }
   renderer.render(scene, camera);
 });
 
@@ -934,6 +1133,7 @@ try {
   status.textContent =
     `terrain ${terrainMeta.cols}×${terrainMeta.rows} @ ${terrainMeta.res} m · ` +
     `${nb} buildings (${buildingsSource}, orange = on parcel)`;
+  if (q.get('walk') === '1') setWalk(true);
 } catch (err) {
   const desc = err?.message ?? `${err?.type ?? 'unknown'} on ${err?.target?.src ?? err?.target?.tagName ?? '?'}`;
   status.textContent = `error: ${desc}`;

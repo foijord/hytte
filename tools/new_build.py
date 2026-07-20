@@ -29,7 +29,8 @@ DESIGNS = [
          pitch=30.0, wall_h=2.8, overhang=0.6),
     dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95:
          form='asym', depth=9.3, width=9.9, pitch=22.0,     # BYA 96, BRA 79.2, 3 soverom,
-         ridge_h=4.3, sea_wall=2.15, overhang=0.5),         # monehoyde 4.3; asymmetric
+         ridge_h=4.3, sea_wall=2.15, overhang=0.5,          # monehoyde 4.3; asymmetric
+         step=0.6, front_depth=3.9),                        # trappet: sea half 0.6 lower
                                                             # saddle, ridge parallel to the
                                                             # long window facade (to the sea),
                                                             # long low plane over the veranda
@@ -135,10 +136,13 @@ def main():
                    base, eave, ridge, pitch, overhang=ov, mono=True,
                    variant=variant, variantLabel=label)
 
-    def asym_cabin(id_, variant, label, depth, width, pitch, ridge_h, sea_wall, ov):
+    def asym_cabin(id_, variant, label, depth, width, pitch, ridge_h, sea_wall,
+                   ov, step=0.0):
         """Asymmetric saddle, ridge along the facade (record ridgeAxis 'd'):
-        long low plane toward the sea (wall height sea_wall), shorter plane
-        toward the road. ridgeOff is the apex offset toward the road (+u)."""
+        long low plane toward the sea (wall height sea_wall over the LIVING
+        floor), shorter plane toward the road. With step > 0 (trappet) the
+        volume sits on the lower sea-side floor (base - step); all roof
+        heights are referenced to that main living floor."""
         slope = math.tan(math.radians(pitch))
         span_sea = (ridge_h - sea_wall) / slope          # wall face -> apex
         road_wall = ridge_h - slope * (depth - span_sea)
@@ -146,19 +150,45 @@ def main():
         u_c = u_sea - ov + roof_u / 2
         cE_, cN_ = to_en(u_c, v_deck)
         off = round(span_sea - depth / 2, 2)             # apex offset toward road
-        return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base,
+        return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base - step,
                    round(road_wall - slope * ov, 2), ridge_h, pitch,
                    overhang=ov, ridgeAxis='d', ridgeOff=off,
                    eave2=round(sea_wall - slope * ov, 2),
                    variant=variant, variantLabel=label)
+
+    def stepped_slabs(cabin, depth, W, step, front_d):
+        """Trappet slab: lower front (sea) half at the living level, upper
+        back half a step up; the back slab is thickened so it closes the
+        excavation down to the front level."""
+        lo = cabin['base']
+        e1, n1 = to_en(u_sea + front_d / 2, v_deck)
+        e2, n2 = to_en(u_sea + front_d + (depth - front_d) / 2, v_deck)
+        front = rec(f'{cabin["id"]}:slab', e1, n1,
+                    round(front_d + 0.05, 2), round(W + 0.05, 2),
+                    lo - 0.35, 0.35, 0.35, 0.0,
+                    type='slab', flat=True, overhang=0.0, onParcel=False,
+                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
+        back = rec(f'{cabin["id"]}:slab2', e2, n2,
+                   round(depth - front_d + 0.05, 2), round(W + 0.05, 2),
+                   lo - 0.35, step + 0.35, step + 0.35, 0.0,
+                   type='slab', flat=True, overhang=0.0, onParcel=False,
+                   variant=cabin['variant'], variantLabel=cabin['variantLabel'])
+        return [front, back]
 
     out = []
     for d in DESIGNS:
         if d.get('form') == 'asym':
             cabin = asym_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],
-                               d['ridge_h'], d['sea_wall'], d['overhang'])
+                               d['ridge_h'], d['sea_wall'], d['overhang'],
+                               step=d.get('step', 0.0))
             L, W = d['depth'], d['width']
+            out += [cabin] + stepped_slabs(cabin, L, W, d.get('step', 0.0),
+                                           d.get('front_depth', L / 2))
+            out.append(fit_deck(cabin, W))
+            print(f"  {d['label']}: walls {L}x{W}, "
+                  f"high point abs {cabin['base'] + cabin['ridge']:.2f} (trappet)")
+            continue
         elif d.get('form') == 'mono':
             cabin = mono_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],

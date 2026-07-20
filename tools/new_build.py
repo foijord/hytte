@@ -95,32 +95,10 @@ def main():
         return rec(id_, cE_, cN_, round(roof_l, 2), round(roof_w, 2),
                    base, eave, ridge, pitch, variant=variant, variantLabel=label)
 
+    # the list of selectable new-build designs; one entry today, more to come
     out = []
-    for cabin in (gable_cabin('newbuild:A', 'A', 'A · gable 30°'),
-                  gable_cabin('newbuild:B', 'B', 'B · setback 2.5 m', setback=SETBACK),
-                  gable_cabin('newbuild:C', 'C', 'C · gable 25°', pitch=25.0)):
+    for cabin in (gable_cabin('newbuild:A', 'A', 'Furutangen 75 · gable 30°'),):
         out += [cabin, slab(cabin, WALLS_L, WALLS_W)]
-
-    # D: low pulttak (Nova-like) approximated as a flat volume; same
-    # footprint for comparability - the real thing needs ~15 m2 more
-    # floor to compensate for the lost hems
-    roof_l = WALLS_L + 2 * OVERHANG
-    u_c = u_sea - OVERHANG + roof_l / 2
-    cE_, cN_ = to_en(u_c, v_deck)
-    cab_d = rec('newbuild:D', cE_, cN_, round(WALLS_L, 2), round(WALLS_W, 2),
-                base, 3.5, 3.5, 0.0, flat=True, overhang=0.0,
-                variant='D', variantLabel='D · low pulttak (approx.)')
-    out += [cab_d, slab(cab_d, WALLS_L, WALLS_W)]
-
-    # E: baseline + west sun-deck at the sea corner (afternoon/evening sun)
-    cab_e = gable_cabin('newbuild:E', 'E', 'E · gable 30° + west deck')
-    out += [cab_e, slab(cab_e, WALLS_L, WALLS_W)]
-    v_west = v_deck + (WALLS_W + 2 * OVERHANG) / 2 + 1.75
-    eW, nW = to_en(u_sea - 1.5, v_west)
-    out.append(rec('newbuild:E:westdeck', eW, nW, 3.5, 4.5,
-                   deck_top - 0.35, 0.35, 0.35, 0.0,
-                   type='deck', flat=True, overhang=0.0,
-                   variant='E', variantLabel='E · gable 30° + west deck'))
 
     # shared: the under-deck storage/tech room (variant: null = all variants);
     # deck keeps its own angle, 90 deg off the cabin's
@@ -135,8 +113,8 @@ def main():
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')
     slope = math.tan(math.radians(PITCH))
     ridge_abs = base + WALL_H - slope * OVERHANG + slope * (WALLS_W + 2 * OVERHANG) / 2
-    print(f'wrote {path} ({len(out)} records, variants A-E; '
-          f'A ridge abs {ridge_abs:.2f} vs old {w1["base"] + w1["ridge"]:.2f})')
+    print(f'wrote {path} ({len(out)} records; '
+          f'ridge abs {ridge_abs:.2f} vs old {w1["base"] + w1["ridge"]:.2f})')
 
     write_floorplan(deck)
 

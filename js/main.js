@@ -92,14 +92,17 @@ let terrainGeo = null;
 let originalHeights = null;
 let excavateOn = true;
 let labelsOn = false;
-// new-build variant cycling: null = existing buildings, else 'A'..'E'
-let newVariant = 'A';
+// new build: an on/off toggle plus a selected design from the list in
+// web/newbuild.json (records tagged with variant/variantLabel)
+let newBuildOn = true;
+let newVariant = null;       // chosen design key; defaults to the first found
 let variantList = [];        // [{key, label}] discovered from newbuild.json
 // records replaced by the new-build concept (web/newbuild.json):
 // main cabin, outdoor wing, the small attached storage (:3) and the deck
 const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', '936839960:3', 'deck']);
 const qNew = q.get('new');
-if (qNew) newVariant = qNew === 'off' ? null : (qNew === '1' ? 'A' : qNew.toUpperCase());
+if (qNew === 'off') newBuildOn = false;
+else if (qNew && qNew !== '1') newVariant = qNew.toUpperCase();
 if (q.get('labels') === 'on') {
   labelsOn = true;
   document.getElementById('labels').textContent = 'labels: on';
@@ -448,26 +451,34 @@ async function addBuildings() {
       if (!have.has(String(b.id))) list.push(b);
     }
   } catch { /* optional */ }
-  if (newVariant && !variantList.some(v => v.key === newVariant)) newVariant = null;
+  if (!variantList.some(v => v.key === newVariant)) newVariant = variantList[0]?.key ?? null;
+  const sel = document.getElementById('nbsel');
+  sel.innerHTML = '';
+  for (const v of variantList) {
+    const o = document.createElement('option');
+    o.value = v.key;
+    o.textContent = v.label;
+    sel.appendChild(o);
+  }
+  if (newVariant) sel.value = newVariant;
   for (const b of list) makeBuildingGroup(normalizeRec(b));
   applyNewBuild();
   return list.length;
 }
 
-// swap the existing cabin + deck for a new-build variant (and back)
+// swap the existing cabin + deck for the selected new-build design (and back)
 function applyNewBuild() {
+  const showNew = newBuildOn && newVariant !== null;
   for (const group of buildingsGroup.children) {
     const rec = group.userData.rec;
     const id = String(rec.id);
-    if (OLD_CABIN_IDS.has(id)) group.visible = newVariant === null;
+    if (OLD_CABIN_IDS.has(id)) group.visible = !showNew;
     else if (id.startsWith('newbuild:')) {
-      group.visible = newVariant !== null && (rec.variant == null || rec.variant === newVariant);
+      group.visible = showNew && (rec.variant == null || rec.variant === newVariant);
     }
   }
   if (selected && !selected.visible) select(null);
-  const label = newVariant === null ? 'off'
-    : (variantList.find(v => v.key === newVariant)?.label ?? newVariant);
-  document.getElementById('newb').textContent = `new build: ${label}`;
+  document.getElementById('newb').textContent = `new build: ${showNew ? 'on' : 'off'}`;
 }
 
 // -------------------------------------------------- terrain excavation
@@ -1139,9 +1150,14 @@ document.getElementById('sunhour').addEventListener('input', e => {
 });
 
 document.getElementById('newb').addEventListener('click', () => {
-  const keys = variantList.map(v => v.key);
-  const i = newVariant === null ? -1 : keys.indexOf(newVariant);
-  newVariant = i + 1 < keys.length ? keys[i + 1] : null;
+  newBuildOn = !newBuildOn;
+  applyNewBuild();
+  applyExcavation();
+  refreshAllLabels();
+});
+document.getElementById('nbsel').addEventListener('change', e => {
+  newVariant = e.target.value;
+  newBuildOn = true;
   applyNewBuild();
   applyExcavation();
   refreshAllLabels();

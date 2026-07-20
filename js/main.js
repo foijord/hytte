@@ -42,12 +42,13 @@ scene.add(sun);
 scene.add(sun.target);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -130; sun.shadow.camera.right = 130;
-sun.shadow.camera.top = 130; sun.shadow.camera.bottom = -130;
+sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.camera.left = -90; sun.shadow.camera.right = 90;
+sun.shadow.camera.top = 90; sun.shadow.camera.bottom = -90;
 sun.shadow.camera.near = 150; sun.shadow.camera.far = 700;
-sun.shadow.bias = -0.0004;
-sun.shadow.normalBias = 2;
+sun.shadow.bias = -0.0003;
+sun.shadow.normalBias = 1.2;
+sun.shadow.radius = 2;
 
 // ------------------------------------------------ sun simulation (58.056N)
 // solar-time position for the property; month is fractional (6.5 = mid-June)

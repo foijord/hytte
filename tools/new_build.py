@@ -27,10 +27,11 @@ DESIGNS = [
     dict(key='B', label='Familiehytta Furutangen 75 · 30°', # BRA 74 + hems ~38,
          form='gable', walls_l=11.15, walls_w=7.6,          # ridge 5.0 / gesims 2.8
          pitch=30.0, wall_h=2.8, overhang=0.6),
-    dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95:
-         form='asym', depth=9.3, width=9.9, pitch=22.0,     # BYA 96, BRA 79.2, 3 soverom,
-         ridge_h=4.3, sea_wall=2.15, overhang=0.5,          # monehoyde 4.3; asymmetric
-         step=0.97, front_depth=3.9),                       # trappet: back level +0.97 (owner)
+    dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95 +
+         form='asym', depth=9.3, width=9.9, pitch=22.0,     # owner's drawings: BYA 96,
+         gesims=2.79, overhang=0.5,                         # BRA 79.2, gesims 2.79 over the
+         step=0.97, front_depth=3.9),                       # local floor BOTH sides, trappet
+                                                            # step 0.97; ridge derived
                                                             # saddle, ridge parallel to the
                                                             # long window facade (to the sea),
                                                             # long low plane over the veranda
@@ -136,24 +137,25 @@ def main():
                    base, eave, ridge, pitch, overhang=ov, mono=True,
                    variant=variant, variantLabel=label)
 
-    def asym_cabin(id_, variant, label, depth, width, pitch, ridge_h, sea_wall,
-                   ov, step=0.0):
-        """Asymmetric saddle, ridge along the facade (record ridgeAxis 'd'):
-        long low plane toward the sea (wall height sea_wall over the LIVING
-        floor), shorter plane toward the road. With step > 0 (trappet) the
-        volume sits on the lower sea-side floor (base - step); all roof
-        heights are referenced to that main living floor."""
+    def asym_cabin(id_, variant, label, depth, width, pitch, gesims, ov,
+                   step=0.0):
+        """Asymmetric saddle from drawing values: gesims (wall height over
+        the LOCAL floor) on both sides, equal pitch, trappet step - the
+        living (sea) half at the normal slab level, back half stepped up.
+        Ridge position and height are derived from where the planes meet.
+        Record base = living floor; ridge along the facade (ridgeAxis 'd')."""
         slope = math.tan(math.radians(pitch))
-        span_sea = (ridge_h - sea_wall) / slope          # wall face -> apex
-        road_wall = ridge_h - slope * (depth - span_sea)
         roof_u, roof_v = depth + 2 * ov, width + 2 * ov
+        e_sea = gesims - slope * ov                  # sea roof edge over base
+        e_road = step + gesims - slope * ov          # road roof edge over base
+        ridge = (e_sea + e_road + slope * roof_u) / 2
+        off = round((ridge - e_sea) / slope - roof_u / 2, 2)   # apex, + = road
         u_c = u_sea - ov + roof_u / 2
         cE_, cN_ = to_en(u_c, v_deck)
-        off = round(span_sea - depth / 2, 2)             # apex offset toward road
         return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base,
-                   round(road_wall - slope * ov, 2), ridge_h, pitch,
+                   round(e_road, 2), round(ridge, 2), pitch,
                    overhang=ov, ridgeAxis='d', ridgeOff=off,
-                   eave2=round(sea_wall - slope * ov, 2), noCut=True,
+                   eave2=round(e_sea, 2), noCut=True,
                    variant=variant, variantLabel=label)
 
     def stepped_slabs(cabin, depth, W, step, front_d):
@@ -180,14 +182,15 @@ def main():
         if d.get('form') == 'asym':
             cabin = asym_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],
-                               d['ridge_h'], d['sea_wall'], d['overhang'],
+                               d['gesims'], d['overhang'],
                                step=d.get('step', 0.0))
             L, W = d['depth'], d['width']
             out += [cabin] + stepped_slabs(cabin, L, W, d.get('step', 0.0),
                                            d.get('front_depth', L / 2))
             out.append(fit_deck(cabin, W))
-            print(f"  {d['label']}: walls {L}x{W}, "
-                  f"high point abs {cabin['base'] + cabin['ridge']:.2f} (trappet)")
+            print(f"  {d['label']}: walls {L}x{W}, high point abs "
+                  f"{cabin['base'] + cabin['ridge']:.2f} (trappet; monehoyde over "
+                  f"upper floor = {cabin['ridge'] - d['step']:.2f})")
             continue
         elif d.get('form') == 'mono':
             cabin = mono_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],

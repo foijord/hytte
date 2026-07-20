@@ -64,7 +64,7 @@ function sunDirection(month, hour) {
   return { el, x: Math.sin(azN) * Math.cos(el), y: Math.sin(el), z: -Math.cos(azN) * Math.cos(el) };
 }
 
-let sunSimOn = false, sunMonth = 6.5, sunHour = 15;
+let sunSimOn = true, sunMonth = 6.5, sunHour = 15;
 
 function updateSun() {
   if (!sunSimOn) {
@@ -91,34 +91,36 @@ let heightGrid = null;      // original heights, used for draping the parcel lin
 let terrainGeo = null;
 let originalHeights = null;
 let excavateOn = true;
-let labelsOn = true;
+let labelsOn = false;
 // new-build variant cycling: null = existing buildings, else 'A'..'E'
-let newVariant = null;
+let newVariant = 'A';
 let variantList = [];        // [{key, label}] discovered from newbuild.json
 // records replaced by the new-build concept (web/newbuild.json):
 // main cabin, outdoor wing, the small attached storage (:3) and the deck
 const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', '936839960:3', 'deck']);
 const qNew = q.get('new');
-if (qNew) newVariant = qNew === '1' ? 'A' : qNew.toUpperCase();
-if (q.get('labels') === 'off') {
-  labelsOn = false;
-  document.getElementById('labels').textContent = 'labels: off';
+if (qNew) newVariant = qNew === 'off' ? null : (qNew === '1' ? 'A' : qNew.toUpperCase());
+if (q.get('labels') === 'on') {
+  labelsOn = true;
+  document.getElementById('labels').textContent = 'labels: on';
 }
 if (q.get('cut') === 'off') {
   excavateOn = false;
   document.getElementById('excav').textContent = 'terrain cut: off';
 }
-if (q.has('sun')) {                 // ?sun=month,hour (solar time)
-  const [m, h] = q.get('sun').split(',').map(Number);
-  sunSimOn = true;
+const qSun = q.get('sun');          // ?sun=month,hour (solar time) or ?sun=off
+if (qSun === 'off') {
+  sunSimOn = false;
+  document.getElementById('sun').textContent = 'sun: off';
+  document.getElementById('sunctl').style.display = 'none';
+} else if (qSun) {
+  const [m, h] = qSun.split(',').map(Number);
   if (Number.isFinite(m)) sunMonth = m;
   if (Number.isFinite(h)) sunHour = h;
-  document.getElementById('sun').textContent = 'sun: on';
-  document.getElementById('sunctl').style.display = '';
   document.getElementById('sunmonth').value = sunMonth;
   document.getElementById('sunhour').value = sunHour;
-  updateSun();
 }
+updateSun();
 
 function heightAt(e, n) {
   const m = terrainMeta;
@@ -207,7 +209,7 @@ function addWater() {
     transparent: true, opacity: 0.62,
   });
   const water = new THREE.Mesh(geo, mat);
-  water.position.y = 0.05;
+  water.position.y = -0.45;
   scene.add(water);
 }
 

@@ -23,6 +23,11 @@ dtm = tifffile.imread(os.path.join(ROOT, "data", "dtm_25cm.tif"))
 rows, cols = dtm.shape
 assert rows % factor == 0 and cols % factor == 0
 
+# sink the sea: LiDAR "terrain" over water sits at ~0.0, which forces the
+# water plane above it; drop those pixels so the plane can sit lower and
+# the beach/rocks above 0.05 stay dry land
+dtm[(dtm > -100) & (dtm < 0.05)] = -1.2
+
 if factor > 1:
     dtm = dtm.reshape(rows // factor, factor, cols // factor, factor).mean(axis=(1, 3))
 

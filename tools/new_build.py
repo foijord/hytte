@@ -1,13 +1,15 @@
 """Generate the new-cabin concept: web/newbuild.json (3D records for the viewer)
 and docs/floorplan.svg (dimensioned concept floor plan).
 
-Design intent (owner, 2026-07-17, revised to cut cost):
-  - PRE-MADE catalog cabin (ferdighytte), ~80 m2 on one level with a hems
-    (sleeping loft) over the road-end half, on a concrete slab.
-  - Single rectangular volume, gable end with the window wall facing the sea,
-    on the same sea-facing gable line and orientation as the old cabin.
-  - Steeper roof (33 deg) than the old cabin to give the hems headroom;
-    ridge lands ~1 m above the old one - flagged for the dispensation.
+Design intent (owner, 2026-07-17; concrete model chosen 2026-07-20):
+  - Familiehytta FURUTANGEN 75 MED HEMS (published specs: BRA 74 m2,
+    GUA 112 m2 incl. ~38 m2 hems, length 11.15 m, width 8.85 m incl.
+    overhang, ridge 5.0 m, gesims 2.8 m, 30 deg roof, hems headroom 1.89 m).
+  - Massing derived from those specs: walls 11.15 x 7.6 m (7.6 = span
+    implied by ridge/gesims/pitch; 8.85 = roof width incl. 0.6 overhang).
+  - Gable end with the window wall facing the sea, on the same sea-facing
+    gable line and orientation as the old cabin. Ridge lands at
+    base+5.0 = 8.02 NN2000, +0.86 m over the old cabin - dispensation point.
   - Deck 8 x 3 m arrangement stays; ONE combined concrete room below it
     (storage + technical, ~18 m2, single entrance on the sea side).
 
@@ -20,11 +22,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-WALLS_L = 12.0             # m, catalog volume wall footprint (~80 m2 BYA)
-WALLS_W = 6.8
-PITCH = 33.0               # deg, hems-friendly roof
-WALL_H = 2.9               # m, wall height at the wall face (raised for hems)
-OVERHANG = 0.4
+WALLS_L = 11.15            # m, Furutangen 75 wall footprint
+WALLS_W = 7.6
+PITCH = 30.0               # deg, Furutangen standard
+WALL_H = 2.8               # m, gesims height
+OVERHANG = 0.6
 WALL_EXT = 0.25            # exterior wall thickness (floor plan)
 PART = 0.15                # interior partition thickness (floor plan)
 
@@ -107,7 +109,7 @@ def write_floorplan(deck):
     (0 = roof edge on the old-wing-A side), Y = along the ridge
     (0 = sea-end roof edge, road end at the top)."""
     S = 40                                    # px per meter
-    ROOF_W, ROOF_L = WALLS_W + 0.8, WALLS_L + 0.8
+    ROOF_W, ROOF_L = WALLS_W + 2 * OVERHANG, WALLS_L + 2 * OVERHANG
 
     x0, x1 = OVERHANG, OVERHANG + WALLS_W     # wall outer faces
     y0, y1 = OVERHANG, OVERHANG + WALLS_L
@@ -122,8 +124,7 @@ def write_floorplan(deck):
     # sea -> road: living (window wall), open kitchen/dining, service band
     # (bath / stair to hems / entrance), two bedrooms under the hems
     y = iy0
-    room(ix0, y, ix1, y + 4.00, 'Living room'); y += 4.00 + PART
-    room(ix0, y, ix1, y + 2.80, 'Kitchen / dining'); y += 2.80 + PART
+    room(ix0, y, ix1, y + 5.35, 'Allrom — stue / kjøkken'); y += 5.35 + PART
     band0 = y
     room(ix0, y, ix0 + 2.40, y + 1.80, 'Bath')
     room(ix0 + 2.40 + PART, y, ix0 + 3.90, y + 1.80, 'Stair')
@@ -169,7 +170,7 @@ def write_floorplan(deck):
     rect(x0 + 0.06, band0 - PART, x1 - 0.06, y1 - 0.06, 'none',
          'stroke="#c2703e" stroke-width="2" stroke-dasharray="9 6"')
     text((ix0 + ix1) / 2, beds0 + 0.32,
-         f'hems above · ~{(y1 - band0 + PART) * WALLS_W * 0.55:.0f} m²', 9.5, '#c2703e')
+         'hems above · ~38 m² (GUA)', 9.5, '#c2703e')
 
     # windows (light blue) and doors (brown)
     win = '#7fb2d9'
@@ -234,10 +235,10 @@ def write_floorplan(deck):
 
     # title block
     svg.append(f'<text x="{px(MX0)+14}" y="{h_px-40}" font-size="16" font-weight="700" '
-               f'fill="#222">Kalsneset 27 — catalog cabin concept (ferdighytte)</text>')
+               f'fill="#222">Kalsneset 27 — Familiehytta Furutangen 75 med hems (approx.)</text>')
     svg.append(f'<text x="{px(MX0)+14}" y="{h_px-20}" font-size="11" fill="#666">'
-               f'{WALLS_L:.0f} × {WALLS_W:.1f} m ≈ {WALLS_L * WALLS_W:.0f} m² + hems · '
-               f'{PITCH:.0f}° roof · window wall to the sea · concrete slab · '
+               f'walls {WALLS_L:.2f} × {WALLS_W:.1f} m · BRA 74 m² + hems ~38 m² · '
+               f'{PITCH:.0f}° roof, ridge 5.0 / gesims 2.8 · window wall to the sea · concrete slab · '
                f'combined storage/tech room ~19 m² below deck · layout indicative, final plan per '
                f'manufacturer · scale 1:100 @ {S}px/m</text>')
     svg.append('</svg>')

@@ -257,6 +257,7 @@ function normalizeRec(b) {
 }
 
 function wallColor(rec) {
+  if (rec.type === 'slab') return 0xaeb2b5;   // concrete
   return rec.type === 'deck' ? 0xb5885e : (rec.onParcel ? 0xe8913a : 0x9fb2c4);
 }
 

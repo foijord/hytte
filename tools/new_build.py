@@ -77,6 +77,14 @@ def main():
         r.update(kw)
         return r
 
+    def slab(cabin, walls_l, walls_w):
+        """Grey concrete slab flush under the walls, 0.35 m visible plinth."""
+        return rec(f'{cabin["id"]}:slab', cabin['cE'], cabin['cN'],
+                   round(walls_l + 0.05, 2), round(walls_w + 0.05, 2),
+                   cabin['base'] - 0.35, 0.35, 0.35, 0.0,
+                   type='slab', flat=True, overhang=0.0, onParcel=False,
+                   variant=cabin['variant'], variantLabel=cabin['variantLabel'])
+
     def gable_cabin(id_, variant, label, pitch=PITCH, setback=0.0):
         roof_l, roof_w = WALLS_L + 2 * OVERHANG, WALLS_W + 2 * OVERHANG
         slope = math.tan(math.radians(pitch))
@@ -87,11 +95,11 @@ def main():
         return rec(id_, cE_, cN_, round(roof_l, 2), round(roof_w, 2),
                    base, eave, ridge, pitch, variant=variant, variantLabel=label)
 
-    out = [
-        gable_cabin('newbuild:A', 'A', 'A · gable 30°'),
-        gable_cabin('newbuild:B', 'B', 'B · setback 2.5 m', setback=SETBACK),
-        gable_cabin('newbuild:C', 'C', 'C · gable 25°', pitch=25.0),
-    ]
+    out = []
+    for cabin in (gable_cabin('newbuild:A', 'A', 'A · gable 30°'),
+                  gable_cabin('newbuild:B', 'B', 'B · setback 2.5 m', setback=SETBACK),
+                  gable_cabin('newbuild:C', 'C', 'C · gable 25°', pitch=25.0)):
+        out += [cabin, slab(cabin, WALLS_L, WALLS_W)]
 
     # D: low pulttak (Nova-like) approximated as a flat volume; same
     # footprint for comparability - the real thing needs ~15 m2 more
@@ -99,12 +107,14 @@ def main():
     roof_l = WALLS_L + 2 * OVERHANG
     u_c = u_sea - OVERHANG + roof_l / 2
     cE_, cN_ = to_en(u_c, v_deck)
-    out.append(rec('newbuild:D', cE_, cN_, round(WALLS_L, 2), round(WALLS_W, 2),
-                   base, 3.5, 3.5, 0.0, flat=True, overhang=0.0,
-                   variant='D', variantLabel='D · low pulttak (approx.)'))
+    cab_d = rec('newbuild:D', cE_, cN_, round(WALLS_L, 2), round(WALLS_W, 2),
+                base, 3.5, 3.5, 0.0, flat=True, overhang=0.0,
+                variant='D', variantLabel='D · low pulttak (approx.)')
+    out += [cab_d, slab(cab_d, WALLS_L, WALLS_W)]
 
     # E: baseline + west sun-deck at the sea corner (afternoon/evening sun)
-    out.append(gable_cabin('newbuild:E', 'E', 'E · gable 30° + west deck'))
+    cab_e = gable_cabin('newbuild:E', 'E', 'E · gable 30° + west deck')
+    out += [cab_e, slab(cab_e, WALLS_L, WALLS_W)]
     v_west = v_deck + (WALLS_W + 2 * OVERHANG) / 2 + 1.75
     eW, nW = to_en(u_sea - 1.5, v_west)
     out.append(rec('newbuild:E:westdeck', eW, nW, 3.5, 4.5,

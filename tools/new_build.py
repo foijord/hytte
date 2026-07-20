@@ -86,10 +86,13 @@ def main():
                base, eave, ridge, PITCH)]
 
     # one combined storage + technical room under the deck (deck top unchanged);
-    # keeps the deck's own angle, which is 90 deg off the cabin's
+    # keeps the deck's own angle, which is 90 deg off the cabin's.
+    # Room height 1.9 m: keep the deck surface, excavate the floor deeper.
+    STORAGE_H = 1.9
+    deck_top = deck['base'] + deck['ridge']
     out.append(rec('newbuild:storage', deck['cE'], deck['cN'],
-                   deck['w'], deck['d'], deck['base'],
-                   deck['ridge'], deck['ridge'], 0.0,
+                   deck['w'], deck['d'], deck_top - STORAGE_H,
+                   STORAGE_H, STORAGE_H, 0.0,
                    type='deck', flat=True, overhang=0.0,
                    angleDeg=deck['angleDeg']))
 
@@ -192,7 +195,7 @@ def write_floorplan(deck):
     rect(dx0, dy0, dx0 + deck['w'], dy1, '#e8d9be', 'stroke="#b59a6a"')
     dcx, dcy = dx0 + deck['w'] / 2, (dy0 + dy1) / 2
     text(dcx, dcy + 0.35, f'Deck {deck["w"]:.0f} × {deck["d"]:.0f} m', 11, '#6b5335')
-    text(dcx, dcy - 0.25, f'Storage / tech room ~{(deck["w"] - 0.5) * (deck["d"] - 0.5):.0f} m² below', 10, '#8a7350')
+    text(dcx, dcy - 0.25, f'Storage / tech room ~{(deck["w"] - 0.5) * (deck["d"] - 0.5):.0f} m² · h 1.9 m below', 10, '#8a7350')
     rect(dcx - 0.45, dy0 - 0.06, dcx + 0.45, dy0 + 0.06, '#8a5a2b')   # door below
     text(dcx, dy0 - 0.5, 'door to the room on the lower (sea) side', 9, '#999')
 

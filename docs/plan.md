@@ -30,7 +30,7 @@ grandfathered right dies with the building.
 | # | Step | Notes |
 |---|------|-------|
 | 1.1 | **Dispensation application** (pbl § 1-8, 100-m belt) | Arguments: erstatningshytte on the same sea-facade line; total roofed area **shrinks 127 → 117 m²** (annex kept, old annex-sized roof not rebuilt); same orientation. Address the **ridge +0.97 m** (8.13 vs 7.16 NN2000) head-on; keep the 25°-roof fallback (~7.5 m) in reserve |
-| 1.2 | **TEK17 § 7-2 stormflo documentation** for the under-deck room (floor at +2.11 NN2000) | Unheated storage/tech: drained, membrane, pump with backflow valve |
+| 1.2 | **TEK17 § 7-2 stormflo documentation** for the under-deck room (floor at +1.59 NN2000, 1.9 m headroom) | Floor sits at ~today's 200-year storm-surge level and below the 2090-adjusted one: watertight concrete in the lower section, drained, membrane, pump with backflow valve; unheated wet-tolerant use |
 | 1.3 | Kristiansand kommune processing + **Statsforvalteren hearing** | 3–6 months; answer requests fast |
 | 1.4 | Combined **riving + nybygg** application, ansvarsretter (tømrer firm = ansvarlig utførende), then **igangsettingstillatelse** | |
 
@@ -56,7 +56,7 @@ One contract, one contractor:
 |---|------|-------|------|
 | 3.1 | Blasting/leveling of the pad; excavation for the under-deck room | Main cost wildcard — coastal bedrock, 300–800+ kr/m³ | in 300–500k |
 | 3.2 | **Insulated slab** ~85 m²: compacted stone, radon barrier, 200–300 mm EPS, ringmur, floor-heat pipes, cast | | 300–500k (incl. 3.1) |
-| 3.3 | **Under-deck concrete room** 8×3 m cast with the slab (shared ring beam): 3 walls, suspended slab = deck floor, membrane + drainage + pump, door on sea side | | 220–400k |
+| 3.3 | **Under-deck concrete room** 8×3 m, 1.9 m headroom (floor +1.59), cast with the slab (shared ring beam): 3 walls, suspended slab = deck floor, watertight lower section, membrane + drainage + pump, door on sea side | | 250–450k |
 | 3.4 | Reuse power/water/sewer connections; byggestrøm | New VA only if forced: +100–300k | — |
 
 ## Phase 4 — Kit delivery & assembly (months 12–15)

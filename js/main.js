@@ -248,7 +248,10 @@ scene.add(buildingsGroup);
 let buildingsSource = 'generated';
 
 function normalizeRec(b) {
-  const rec = { overhang: 0, open: false, backWall: null, variant: null, mono: false, ...b };
+  const rec = {
+    overhang: 0, open: false, backWall: null, variant: null, mono: false,
+    eave2: null, ridgeOff: 0, ...b,
+  };
   if (!Array.isArray(rec.cutExt) || rec.cutExt.length !== 4) rec.cutExt = [0, 0, 0, 0];
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
@@ -298,19 +301,25 @@ function wallsGeometry(rec) {
     g.translate(0, 0, -hd);
     return g;
   }
-  // build with ridge along local x; W = extent along ridge, D across
+  // build with ridge along local x; W = extent along ridge, D across.
+  // eave2 (far side) and ridgeOff support asymmetric saddles.
   const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
   const ov = rec.overhang;
   const hw = Math.max(W / 2 - ov, 0.2);
   const hd = Math.max(D / 2 - ov, 0.2);
-  const slope = (rec.ridge - rec.eave) / (D / 2);
-  const wallTop = Math.max(rec.eave + slope * ov, 0.3);
+  const e1 = rec.eave;
+  const e2 = rec.eave2 ?? rec.eave;
+  const off = THREE.MathUtils.clamp(rec.ridgeOff ?? 0, -hd + 0.1, hd - 0.1);
+  const s1 = (rec.ridge - e1) / Math.max(D / 2 - off, 0.1);
+  const s2 = (rec.ridge - e2) / Math.max(D / 2 + off, 0.1);
+  const t1 = Math.max(e1 + s1 * ov, 0.3);
+  const t2 = Math.max(e2 + s2 * ov, 0.3);
   const shape = new THREE.Shape([
     new THREE.Vector2(-hd, 0),
     new THREE.Vector2(hd, 0),
-    new THREE.Vector2(hd, wallTop),
-    new THREE.Vector2(0, Math.max(rec.ridge - 0.02, wallTop)),
-    new THREE.Vector2(-hd, wallTop),
+    new THREE.Vector2(hd, t1),
+    new THREE.Vector2(off, Math.max(rec.ridge - 0.02, Math.max(t1, t2))),
+    new THREE.Vector2(-hd, t2),
   ]);
   const g = new THREE.ExtrudeGeometry(shape, { depth: 2 * hw, bevelEnabled: false });
   g.translate(0, 0, -hw);
@@ -332,13 +341,15 @@ function roofGeometry(rec) {
   }
   const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
   const e = rec.eave, r = rec.ridge;
+  const e2 = rec.eave2 ?? e;
+  const off = THREE.MathUtils.clamp(rec.ridgeOff ?? 0, -D / 2 + 0.1, D / 2 - 0.1);
   const verts = new Float32Array([
-    // south-facing plane
-    -W / 2, e, D / 2,   W / 2, e, D / 2,   W / 2, r, 0,
-    -W / 2, e, D / 2,   W / 2, r, 0,      -W / 2, r, 0,
-    // north-facing plane
-    -W / 2, r, 0,       W / 2, r, 0,       W / 2, e, -D / 2,
-    -W / 2, r, 0,       W / 2, e, -D / 2, -W / 2, e, -D / 2,
+    // plane on the + side (eave)
+    -W / 2, e, D / 2,   W / 2, e, D / 2,   W / 2, r, off,
+    -W / 2, e, D / 2,   W / 2, r, off,    -W / 2, r, off,
+    // plane on the - side (eave2)
+    -W / 2, r, off,     W / 2, r, off,     W / 2, e2, -D / 2,
+    -W / 2, r, off,     W / 2, e2, -D / 2, -W / 2, e2, -D / 2,
   ]);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
@@ -993,6 +1004,8 @@ function serialize() {
       open: rec.open,
       backWall: rec.backWall,
       mono: rec.mono,
+      eave2: rec.eave2 ?? null,
+      ridgeOff: rec.ridgeOff ?? 0,
       variant: rec.variant ?? null,
       variantLabel: rec.variantLabel ?? null,
       cutExt: rec.cutExt,

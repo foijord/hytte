@@ -27,9 +27,12 @@ DESIGNS = [
     dict(key='B', label='Familiehytta Furutangen 75 · 30°', # BRA 74 + hems ~38,
          form='gable', walls_l=11.15, walls_w=7.6,          # ridge 5.0 / gesims 2.8
          pitch=30.0, wall_h=2.8, overhang=0.6),
-    dict(key='C', label='Saltdalshytta Frem 95 · 22°',      # saltdalshytta.no/frem-95:
-         form='gable', walls_l=9.9, walls_w=9.3,            # BYA 96, BRA 79.2, 3 soverom,
-         pitch=22.0, wall_h=2.42, overhang=0.5),            # monehoyde 4.3, no hems
+    dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95:
+         form='asym', depth=9.3, width=9.9, pitch=22.0,     # BYA 96, BRA 79.2, 3 soverom,
+         ridge_h=4.3, sea_wall=2.15, overhang=0.5),         # monehoyde 4.3; asymmetric
+                                                            # saddle, ridge parallel to the
+                                                            # long window facade (to the sea),
+                                                            # long low plane over the veranda
     dict(key='D', label='Saltdalshytta Nova 120 · pulttak', # saltdalshytta.no/nova-208
          form='mono', depth=6.7, width=14.7,                # (page titled Nova 120): BYA 117,
          pitch=6.8, high_wall=4.4, overhang=0.5),           # BRA 101, grunnflate 98.4; high
@@ -132,9 +135,31 @@ def main():
                    base, eave, ridge, pitch, overhang=ov, mono=True,
                    variant=variant, variantLabel=label)
 
+    def asym_cabin(id_, variant, label, depth, width, pitch, ridge_h, sea_wall, ov):
+        """Asymmetric saddle, ridge along the facade (record ridgeAxis 'd'):
+        long low plane toward the sea (wall height sea_wall), shorter plane
+        toward the road. ridgeOff is the apex offset toward the road (+u)."""
+        slope = math.tan(math.radians(pitch))
+        span_sea = (ridge_h - sea_wall) / slope          # wall face -> apex
+        road_wall = ridge_h - slope * (depth - span_sea)
+        roof_u, roof_v = depth + 2 * ov, width + 2 * ov
+        u_c = u_sea - ov + roof_u / 2
+        cE_, cN_ = to_en(u_c, v_deck)
+        off = round(span_sea - depth / 2, 2)             # apex offset toward road
+        return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base,
+                   round(road_wall - slope * ov, 2), ridge_h, pitch,
+                   overhang=ov, ridgeAxis='d', ridgeOff=off,
+                   eave2=round(sea_wall - slope * ov, 2),
+                   variant=variant, variantLabel=label)
+
     out = []
     for d in DESIGNS:
-        if d.get('form') == 'mono':
+        if d.get('form') == 'asym':
+            cabin = asym_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
+                               d['depth'], d['width'], d['pitch'],
+                               d['ridge_h'], d['sea_wall'], d['overhang'])
+            L, W = d['depth'], d['width']
+        elif d.get('form') == 'mono':
             cabin = mono_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],
                                d['high_wall'], d['overhang'])

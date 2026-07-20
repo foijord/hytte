@@ -78,13 +78,14 @@ def main():
     # sea-facing facade line = the u- gable line of the old main wing
     u_deck, v_deck = to_uv(deck['cE'], deck['cN'])
     assert u_deck < -w1['w'] / 2, 'deck expected off the u- gable end'
-    u_sea = -w1['w'] / 2
+    # owner 2026-07-20: whole new build pulled 1.5 m back toward the road
+    # from the old sea-facade line (increases distance from the sea)
+    u_sea = -w1['w'] / 2 + 1.5
     # owner 2026-07-20: whole new build 0.5 m to the right (~ENE) as seen
     # looking toward the sea = -0.5 in the local across-axis
     v_deck -= 0.5
     deck_top = deck['base'] + deck['ridge']
-    # owner 2026-07-20: whole new build lowered 0.5 m (slab top 3.05 NN2000)
-    base = deck_top + 0.06 - 0.5
+    base = deck_top + 0.06                    # slab just above the old deck top
 
     def rec(id_, cE_, cN_, w, d, b, eave_, ridge_, pitch, **kw):
         r = {'id': id_, 'type': kw.pop('type', 'cabin'), 'onParcel': True,

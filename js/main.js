@@ -65,7 +65,7 @@ function sunDirection(month, hour) {
   return { el, x: Math.sin(azN) * Math.cos(el), y: Math.sin(el), z: -Math.cos(azN) * Math.cos(el) };
 }
 
-let sunSimOn = true, sunMonth = 6.5, sunHour = 15;
+let sunSimOn = true, sunMonth = 6.5, sunHour = 11.5;
 
 function updateSun() {
   if (!sunSimOn) {

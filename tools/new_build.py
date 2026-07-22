@@ -39,14 +39,17 @@ DESIGNS = [
 ]
 DESIGNS.append(
     dict(key='E', label='Drømmehytten Falstad · split roof', # drommehytten.no/hytter/falstad:
-         form='split', width=10.8, depth=8.3,               # BYA 81.6, BRA 71.8 + loft 38.4,
-         lean_depth=3.3, front_eave=3.52, attach=5.06,      # gesims 3.52 / gesims2 6.56 (page);
-         high=6.56, back_eave=3.44, overhang=0.4))          # attach/back derived ~25/32 deg
+         form='split', width=10.3, depth=7.8,               # BYA 81.6 => walls 10.3x7.8; the
+         lean_depth=3.1, front_eave=3.52, attach=5.06,      # "storste" 10.8x8.3 is the ROOF
+         high=6.56, back_eave=3.44, overhang=0.25))         # envelope (ov 0.25); gesims
+                                                            # 3.52/6.56 published, attach/back
+                                                            # derived
 DESIGNS.append(
     dict(key='F', label='Drømmehytten Spangereid · funkis', # drommehytten.no/hytter/spangereid:
-         form='stack', width=10.4, depth=8.0,               # BYA 85.2, BRA 130.85 (2 floors),
-         ground_h=2.75, terrace_depth=2.2,                  # loft 55.2, takterrasse 21.1,
-         gesims=5.49, mone=5.94, overhang=0.35))            # gesims 5.49 / mone 5.94, funkis
+         form='stack', width=10.4, depth=8.0,               # 10.4x8.0 = grunnflate 83.2 =>
+         ground_h=2.75, terrace_depth=2.03,                 # true wall dims; terrace 21.1/10.4
+         gesims=5.49, mone=5.94, overhang=0.1))             # = 2.03 deep => upper 55.2 = loft;
+                                                            # gesims 5.49 / mone 5.94, funkis
 WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
 PITCH = 30.0

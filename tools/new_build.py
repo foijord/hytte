@@ -36,15 +36,17 @@ DESIGNS = [
                                                             # saddle, ridge parallel to the
                                                             # long window facade (to the sea),
                                                             # long low plane over the veranda
-    dict(key='D', label='Saltdalshytta Nova 120 · pulttak', # saltdalshytta.no/nova-208
-         form='mono', depth=6.7, width=14.7,                # (page titled Nova 120): BYA 117,
-         pitch=6.8, high_wall=4.4, overhang=0.5),           # BRA 101, grunnflate 98.4; high
-]                                                           # wall ESTIMATED (not published)
+]
 DESIGNS.append(
     dict(key='E', label='Drømmehytten Falstad · split roof', # drommehytten.no/hytter/falstad:
          form='split', width=10.8, depth=8.3,               # BYA 81.6, BRA 71.8 + loft 38.4,
          lean_depth=3.3, front_eave=3.52, attach=5.06,      # gesims 3.52 / gesims2 6.56 (page);
          high=6.56, back_eave=3.44, overhang=0.4))          # attach/back derived ~25/32 deg
+DESIGNS.append(
+    dict(key='F', label='Drømmehytten Spangereid · funkis', # drommehytten.no/hytter/spangereid:
+         form='stack', width=10.4, depth=8.0,               # BYA 85.2, BRA 130.85 (2 floors),
+         ground_h=2.75, terrace_depth=2.2,                  # loft 55.2, takterrasse 21.1,
+         gesims=5.49, mone=5.94, overhang=0.35))            # gesims 5.49 / mone 5.94, funkis
 WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
 PITCH = 30.0
@@ -201,10 +203,13 @@ def main():
         ov = d['overhang']
         W, DEP, LD = d['width'], d['depth'], d['lean_depth']
         key, label = d['key'], d['label']
-        # lean-to: u_sea .. u_sea+LD, high edge at the road side (attach)
-        u_c1 = u_sea - ov + (LD + 2 * ov) / 2
+        # lean-to: u_sea .. u_sea+LD, high edge at the road side (attach);
+        # 3 cm short of the junction so the abutting wall faces are not
+        # coplanar with the tall volume (z-fighting)
+        LDe = LD - 0.03
+        u_c1 = u_sea - ov + (LDe + 2 * ov) / 2
         e1, n1 = to_en(u_c1, v_deck)
-        lean = rec(f'newbuild:{key}', e1, n1, round(LD + 2 * ov, 2),
+        lean = rec(f'newbuild:{key}', e1, n1, round(LDe + 2 * ov, 2),
                    round(W + 2 * ov, 2), base,
                    d['front_eave'], d['attach'], 25.0,
                    overhang=ov, mono=True, angleDeg=ang + 180,
@@ -225,8 +230,40 @@ def main():
                  variant=key, variantLabel=label)
         return [lean, tall, sl, fit_deck(lean, W)]
 
+    def stack_cabin(d):
+        """Spangereid-style funkis: full-footprint ground floor with a flat
+        roof (the sea-side part becomes the roof terrace), set-back upper
+        floor with a near-flat mono roof, high edge toward the sea."""
+        ov = d['overhang']
+        W, DEP, TD = d['width'], d['depth'], d['terrace_depth']
+        key, label = d['key'], d['label']
+        gh = d['ground_h']
+        eG, nG = to_en(u_sea + DEP / 2, v_deck)
+        ground = rec(f'newbuild:{key}', eG, nG, round(DEP, 2), round(W, 2),
+                     base, gh, gh, 0.0, flat=True, overhang=0.0,
+                     variant=key, variantLabel=label)
+        ud = DEP - TD                             # upper volume depth
+        u_c = u_sea + TD - ov + (ud + 2 * ov) / 2
+        eU, nU = to_en(u_c, v_deck)
+        upper = rec(f'newbuild:{key}:upper', eU, nU, round(ud + 2 * ov, 2),
+                    round(W + 2 * ov, 2), base + gh + 0.02,
+                    round(d['gesims'] - gh, 2), round(d['mone'] - gh, 2), 3.2,
+                    overhang=ov, mono=True, noCut=True,
+                    variant=key, variantLabel=label)
+        eS, nS = to_en(u_sea + DEP / 2, v_deck)
+        sl = rec(f'newbuild:{key}:slab', eS, nS, round(DEP + 0.05, 2),
+                 round(W + 0.05, 2), base - 0.35, 0.35, 0.35, 0.0,
+                 type='slab', flat=True, overhang=0.0, onParcel=False,
+                 variant=key, variantLabel=label)
+        return [ground, upper, sl, fit_deck(ground, W)]
+
     out = []
     for d in DESIGNS:
+        if d.get('form') == 'stack':
+            out += stack_cabin(d)
+            print(f"  {d['label']}: {d['width']}x{d['depth']}, top abs "
+                  f"{base + d['mone']:.2f} (funkis, roof terrace)")
+            continue
         if d.get('form') == 'split':
             out += split_cabin(d)
             print(f"  {d['label']}: {d['width']}x{d['depth']}, top abs "

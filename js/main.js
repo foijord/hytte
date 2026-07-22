@@ -289,9 +289,10 @@ function wallsGeometry(rec) {
     const ov = rec.overhang;
     const hw = Math.max(rec.w / 2 - ov, 0.2);
     const hd = Math.max(rec.d / 2 - ov, 0.2);
+    // wall top 2 cm under the roof plane so they don't z-fight
     const slope = (rec.ridge - rec.eave) / rec.w;
-    const hHigh = Math.max(rec.ridge - slope * ov, 0.3);
-    const hLow = Math.max(rec.eave + slope * ov, 0.3);
+    const hHigh = Math.max(rec.ridge - slope * ov - 0.02, 0.3);
+    const hLow = Math.max(rec.eave + slope * ov - 0.02, 0.3);
     const shape = new THREE.Shape([
       new THREE.Vector2(-hw, 0),
       new THREE.Vector2(hw, 0),
@@ -524,6 +525,10 @@ function applyNewBuild() {
   }
   if (selected && !selected.visible) select(null);
   document.getElementById('newb').textContent = `new build: ${showNew ? 'on' : 'off'}`;
+  // reflect the selection in the URL so the current view is linkable
+  const url = new URL(location);
+  url.searchParams.set('new', showNew ? newVariant : 'off');
+  history.replaceState(null, '', url);
 }
 
 // -------------------------------------------------- terrain excavation
